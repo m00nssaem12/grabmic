@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>그랩 더 마이크 — 가사 단어 노래 파티 게임</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Jua&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Do+Hyeon&family=Jua&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <style>
@@ -21,15 +21,15 @@ button{font-family:inherit;cursor:pointer;border:none}
 input,select,textarea{font-family:inherit;font-size:16px}
 .screen{display:none;min-height:100vh;padding:20px}
 .screen.on{display:block}
-.neon-title{font-family:'Black Han Sans',sans-serif;line-height:1;text-align:center}
-.neon-pink{color:#fff;text-shadow:0 0 6px var(--pink),0 0 18px var(--pink),0 0 36px var(--pink)}
-.neon-mint{color:#fff;text-shadow:0 0 6px var(--mint),0 0 18px var(--mint),0 0 36px var(--mint)}
-.neon-yellow{color:#fff;text-shadow:0 0 6px var(--yellow),0 0 18px var(--yellow)}
+.neon-title{font-family:'Do Hyeon',sans-serif;line-height:1;text-align:center}
+.neon-pink{color:#fff;text-shadow:0 0 4px var(--pink),0 0 14px #ff3d9a99}
+.neon-mint{color:#fff;text-shadow:0 0 4px var(--mint),0 0 14px #2ef2c999}
+.neon-yellow{color:#fff;text-shadow:0 0 4px var(--yellow),0 0 12px #ffd23f99}
 .box{background:var(--panel);border:2px solid var(--line);border-radius:18px;padding:18px}
 .nbox-pink{border-color:var(--pink);box-shadow:0 0 14px #ff3d9a55,inset 0 0 14px #ff3d9a22}
 .nbox-mint{border-color:var(--mint);box-shadow:0 0 14px #2ef2c955,inset 0 0 14px #2ef2c922}
 .nbox-yellow{border-color:var(--yellow);box-shadow:0 0 14px #ffd23f55,inset 0 0 14px #ffd23f22}
-.btn{padding:14px 22px;border-radius:14px;font-size:20px;color:#14101c;font-weight:bold;transition:transform .08s,filter .2s}
+.btn{padding:14px 22px;border-radius:14px;font-size:20px;color:#14101c;font-weight:normal;transition:transform .08s,filter .2s}
 .btn:active{transform:scale(.96)}
 .btn:disabled{filter:grayscale(1) brightness(.5);cursor:not-allowed}
 .b-pink{background:var(--pink);color:#fff;box-shadow:0 0 16px #ff3d9a88}
@@ -41,7 +41,8 @@ input,select,textarea{font-family:inherit;font-size:16px}
 .center{text-align:center}
 .dim{color:var(--dim)}
 .wrap{max-width:1200px;margin:0 auto}
-h2{font-size:24px;margin-bottom:12px}
+h2{font-size:24px;margin-bottom:12px;font-weight:normal}
+b,strong{font-weight:normal;color:var(--yellow)}
 label.opt{display:flex;align-items:center;gap:8px;font-size:18px;padding:6px 0}
 label.opt input[type=checkbox]{width:22px;height:22px;accent-color:var(--pink)}
 select,input[type=text],input[type=number],textarea{background:#0f0c16;color:var(--text);border:2px solid var(--line);border-radius:10px;padding:10px}
@@ -51,14 +52,14 @@ textarea{width:100%;min-height:110px;resize:vertical}
 
 /* HOME */
 .home-logo{margin:30px 0 8px}
-.home-logo .l1{font-size:clamp(54px,12vw,120px)}
+.home-logo .l1{font-size:clamp(54px,12vw,120px);font-family:'Black Han Sans',sans-serif}
 .home-logo .l2{font-size:clamp(28px,6vw,56px);margin-top:6px}
 .home-sub{text-align:center;font-size:20px;color:var(--yellow);margin-bottom:28px}
 .menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;max-width:860px;margin:0 auto}
 .menu .card{cursor:pointer;text-align:center;padding:24px 16px;transition:transform .15s}
 .menu .card:hover{transform:translateY(-4px)}
 .menu .card .ic{font-size:52px}
-.menu .card .t{font-size:24px;margin:8px 0 4px}
+.menu .card .t{font-size:28px;margin:4px 0 8px;font-family:'Do Hyeon',sans-serif}
 .menu .card .d{color:var(--dim);font-size:15px}
 
 /* setup */
@@ -92,7 +93,7 @@ textarea{width:100%;min-height:110px;resize:vertical}
 .wordcard{position:relative;border-radius:22px;min-height:230px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;
   background:linear-gradient(145deg,#2ef2c9,#19c9a6);color:#0d0b14;box-shadow:0 0 30px #2ef2c977;transition:transform .4s}
 .wordcard.back{background:linear-gradient(145deg,#ff3d9a,#d61f7c);color:#fff;box-shadow:0 0 30px #ff3d9a77}
-.wordcard .w{font-family:'Black Han Sans';font-size:clamp(56px,8vw,110px);line-height:1.05;text-align:center;word-break:keep-all}
+.wordcard .w{font-family:'Do Hyeon',sans-serif;font-size:clamp(56px,8vw,110px);line-height:1.05;text-align:center;word-break:keep-all}
 .wordcard .steps{position:absolute;top:12px;right:16px;display:flex;gap:4px}
 .wordcard .steps span{width:20px;height:20px;border-radius:50%;background:#0d0b14;opacity:.85}
 .wordcard .stepTxt{position:absolute;bottom:10px;right:16px;font-size:18px;opacity:.8}
@@ -100,10 +101,10 @@ textarea{width:100%;min-height:110px;resize:vertical}
 .flip{animation:flip .45s}
 @keyframes flip{0%{transform:rotateY(90deg)}100%{transform:rotateY(0)}}
 .status{min-height:120px;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:6px}
-.status .big{font-family:'Black Han Sans';font-size:clamp(30px,4vw,48px)}
+.status .big{font-family:'Do Hyeon',sans-serif;font-size:clamp(30px,4vw,48px)}
 .status .msg{font-size:20px;color:var(--dim)}
 .cond{display:inline-block;background:var(--yellow);color:#14101c;border-radius:10px;padding:6px 12px;font-size:20px;margin-top:4px}
-.timer{font-family:'Black Han Sans';font-size:60px;color:var(--yellow)}
+.timer{font-family:'Do Hyeon',sans-serif;font-size:60px;color:var(--yellow)}
 .timer.out{color:var(--red);animation:blink .5s infinite alternate}
 @keyframes blink{to{opacity:.3}}
 .mic{font-size:80px;display:inline-block;filter:drop-shadow(0 0 14px var(--pink))}
@@ -135,17 +136,18 @@ textarea{width:100%;min-height:110px;resize:vertical}
 .hide-adj .adj{display:none}
 
 /* buzzers (한 화면 모드) */
-#buzzers{display:none;margin-top:14px;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))}
+#buzzers{display:none;margin-top:14px;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr))}
 #buzzers.on{display:grid}
 #buzzers.narrow{margin-top:0;grid-template-columns:repeat(2,1fr);gap:10px}
 #buzzers.narrow .buzz{min-height:clamp(120px,18vh,180px);font-size:clamp(28px,8vw,44px)}
 #buzzers.narrow .buzz .bic{font-size:clamp(34px,10vw,56px)}
-.buzz{min-height:clamp(150px,28vh,280px);border-radius:26px;font-family:'Black Han Sans';font-size:clamp(34px,4.6vw,68px);color:#fff;
+.buzz{min-height:clamp(120px,22vh,230px);border-radius:24px;font-family:'Do Hyeon',sans-serif;font-size:clamp(28px,3vw,52px);color:#fff;
   border:4px solid currentColor;background:#0f0c16;box-shadow:0 0 18px currentColor,inset 0 0 26px #0008;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
   touch-action:manipulation;user-select:none;-webkit-user-select:none;transition:transform .06s}
-.buzz span{color:#fff;text-shadow:0 0 10px currentColor}
-.buzz small{font-family:'Jua';font-size:clamp(16px,1.6vw,24px);color:var(--dim)}
-.buzz .bic{font-size:clamp(40px,5vw,80px);line-height:1}
+.buzz span{color:#fff;text-shadow:0 0 6px rgba(255,255,255,.25);white-space:nowrap;max-width:94%;display:block;overflow:hidden}
+.buzz small{font-family:'Jua';font-size:clamp(13px,1.3vw,20px);color:var(--dim);white-space:nowrap;max-width:94%;overflow:hidden;text-overflow:ellipsis}
+#buzzers.many .buzz{min-height:clamp(100px,17vh,190px)}
+.buzz .bic{font-size:clamp(34px,3.6vw,64px);line-height:1}
 .buzz:active{transform:scale(.95)}
 .buzz:disabled{opacity:.3;box-shadow:none}
 #voiceInd{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:65;background:#000c;border:2px solid var(--pink);border-radius:999px;padding:6px 16px;font-size:17px;display:none;box-shadow:0 0 14px #ff3d9a66}
@@ -153,7 +155,7 @@ textarea{width:100%;min-height:110px;resize:vertical}
 #voiceInd button{background:var(--mint);color:#14101c;border-radius:999px;padding:4px 12px;font-size:16px;margin-left:6px}
 /* client */
 #client{padding:14px;text-align:center}
-.cl-word{font-family:'Black Han Sans';font-size:clamp(48px,14vw,90px);margin:6px 0;word-break:keep-all}
+.cl-word{font-family:'Do Hyeon',sans-serif;font-size:clamp(48px,14vw,90px);margin:6px 0;word-break:keep-all}
 .bigmic{width:min(78vw,340px);height:min(78vw,340px);border-radius:50%;font-size:clamp(90px,26vw,150px);margin:18px auto;display:flex;align-items:center;justify-content:center;
   background:radial-gradient(circle at 35% 30%,#ff7dbd,#ff3d9a 55%,#b0135f);box-shadow:0 0 40px #ff3d9aaa,inset 0 -10px 30px #0004;color:#fff;transition:transform .08s}
 .bigmic:active{transform:scale(.94)}
@@ -168,7 +170,7 @@ textarea{width:100%;min-height:110px;resize:vertical}
 .rules p,.rules li{font-size:18px;line-height:1.6}
 .rules ol,.rules ul{padding-left:22px}
 .rules h3{color:var(--mint);margin:14px 0 6px;font-size:21px}
-.win-name{font-family:'Black Han Sans';font-size:clamp(50px,10vw,100px)}
+.win-name{font-family:'Do Hyeon',sans-serif;font-size:clamp(50px,10vw,100px)}
 .rank{font-size:20px;margin-top:10px;line-height:1.7}
 .confetti{position:fixed;top:-20px;width:10px;height:16px;z-index:60;animation:fall linear forwards;pointer-events:none}
 @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
@@ -183,14 +185,14 @@ textarea{width:100%;min-height:110px;resize:vertical}
     <div class="l1 neon-pink">GRAB THE MIC</div>
     <div class="l2 neon-mint">그랩 더 마이크</div>
   </div>
-  <p class="home-sub">🎤 단어를 보고 가장 먼저 마이크를 잡아, 그 단어가 들어간 노래를 불러라!</p>
+  <p class="home-sub">단어를 보고 가장 먼저 마이크를 잡아, 그 단어가 들어간 노래를 불러라!</p>
   <div class="menu">
-    <div class="card box nbox-pink" onclick="goLocalSetup()"><div class="ic">📺</div><div class="t">한 화면 모드</div><div class="d">TV·노트북·태블릿 하나로 다 같이!<br>떠오르면 화면 속 내 이름 버튼을 가장 먼저 탭!</div></div>
-    <div class="card box nbox-mint" onclick="goHost()"><div class="ic">📡</div><div class="t">온라인 방 만들기</div><div class="d">큰 화면에 보드를 띄우고<br>모두 각자 폰으로 마이크 버튼!</div></div>
-    <div class="card box nbox-yellow" onclick="goJoin()"><div class="ic">🙋</div><div class="t">방 참가하기</div><div class="d">방 코드를 입력하고 내 폰을 마이크로!</div></div>
+    <div class="card box nbox-pink" onclick="goLocalSetup()"><div class="t">한 화면 모드</div><div class="d">TV·노트북·태블릿 하나로 다 같이!<br>떠오르면 화면 속 내 이름 버튼을 가장 먼저 탭!</div></div>
+    <div class="card box nbox-mint" onclick="goHost()"><div class="t">온라인 방 만들기</div><div class="d">큰 화면에 보드를 띄우고<br>모두 각자 폰으로 마이크 버튼!</div></div>
+    <div class="card box nbox-yellow" onclick="goJoin()"><div class="t">방 참가하기</div><div class="d">방 코드를 입력하고 내 폰을 마이크로!</div></div>
   </div>
   <div class="row" style="justify-content:center;margin-top:20px">
-    <button class="btn b-ghost" onclick="openRules()">📖 규칙 보기</button>
+    <button class="btn b-ghost" onclick="openRules()">규칙 보기</button>
   </div>
   <div class="footer">made by m00n · <a href="https://m00n-ssaem.github.io/site/" target="_blank">m00n 웹앱 모음</a></div>
 </section>
@@ -198,26 +200,26 @@ textarea{width:100%;min-height:110px;resize:vertical}
 <!-- SETTINGS PANEL (moved between screens) -->
 <div id="settingsHolder" style="display:none">
 <div id="settingsPanel" class="box" style="margin-top:14px">
-  <h2>⚙️ 게임 설정</h2>
+  <h2>게임 설정</h2>
   <div class="set-grid">
     <div>
-      <label class="opt">🏁 보드 길이
+      <label class="opt">보드 길이
         <select id="sLen"><option value="8">짧게 (8칸)</option><option value="12">보통 (12칸)</option><option value="16">길게 (16칸)</option><option value="20">아주 길게 (20칸)</option></select>
       </label>
-      <label class="opt">⏱️ 노래 시작 제한 시간
+      <label class="opt">노래 시작 제한 시간
         <select id="sTimer"><option value="0">끄기</option><option value="5">5초</option><option value="10">10초</option><option value="15">15초</option></select>
       </label>
-      <label class="opt"><input type="checkbox" id="sSpecial"> ⭐ 특수 칸 사용 (솔로·그룹·댄스곡 조건)</label>
+      <label class="opt"><input type="checkbox" id="sSpecial"> 특수 칸 사용 (솔로·그룹·댄스곡 조건)</label>
     </div>
     <div>
-      <label class="opt"><input type="checkbox" id="sBasic"> 🇰🇷 기본 우리말 단어</label>
-      <label class="opt"><input type="checkbox" id="sEng"> 🔤 영어 가사 단어 (love, baby…)</label>
-      <label class="opt"><input type="checkbox" id="sEasy"> 🐣 쉬운 단어만 (자주 나오는 단어)</label>
-      <label class="opt"><input type="checkbox" id="sVoice"> 🎙️ 음성 방송 <span class="dim" style="font-size:15px">(온라인 방 — 마이크 잡은 사람 목소리만 모두에게)</span></label>
+      <label class="opt"><input type="checkbox" id="sBasic"> 기본 우리말 단어</label>
+      <label class="opt"><input type="checkbox" id="sEng"> 영어 가사 단어 (love, baby…)</label>
+      <label class="opt"><input type="checkbox" id="sEasy"> 쉬운 단어만 (자주 나오는 단어)</label>
+      <label class="opt"><input type="checkbox" id="sVoice"> 음성 방송 <span class="dim" style="font-size:15px">(온라인 방 — 마이크 잡은 사람 목소리만 모두에게)</span></label>
     </div>
   </div>
   <details style="margin-top:8px">
-    <summary style="cursor:pointer;font-size:18px">✏️ 나만의 단어 추가하기</summary>
+    <summary style="cursor:pointer;font-size:18px">나만의 단어 추가하기</summary>
     <p class="dim" style="margin:6px 0">한 줄에 하나씩. 쉼표 뒤에 칸 수(1~3)를 적을 수 있어요. 예) <b>떡볶이,3</b></p>
     <textarea id="sCustom" placeholder="떡볶이,3&#10;노래방,2&#10;여행"></textarea>
     <label class="opt"><input type="checkbox" id="sOnlyCustom"> 추가한 단어만 사용</label>
@@ -232,13 +234,13 @@ textarea{width:100%;min-height:110px;resize:vertical}
   <div class="wrap">
     <div class="setup-head">
       <button class="btn b-ghost" onclick="show('home')">← 처음으로</button>
-      <div class="neon-title neon-pink" style="font-size:34px">📺 한 화면 모드</div>
-      <button class="btn b-pink" style="font-size:24px;padding:14px 32px" onclick="startLocal()">🎶 게임 시작!</button>
+      <div class="neon-title neon-pink" style="font-size:34px">한 화면 모드</div>
+      <button class="btn b-pink" style="font-size:24px;padding:14px 32px" onclick="startLocal()">게임 시작!</button>
     </div>
     <div class="setup-grid">
       <div class="box nbox-pink">
         <div class="row" style="justify-content:space-between">
-          <h2 style="margin:0">🎤 참가자</h2>
+          <h2 style="margin:0">참가자</h2>
           <label class="opt">인원 <select id="pCount"></select></label>
         </div>
         <p class="dim" style="margin:4px 0 10px">참가자 이름이나 팀 이름을 적어 주세요. (2~10명)</p>
@@ -254,8 +256,8 @@ textarea{width:100%;min-height:110px;resize:vertical}
   <div class="wrap">
     <div class="setup-head">
       <button class="btn b-ghost" onclick="leaveHost()">← 처음으로</button>
-      <div class="neon-title neon-mint" style="font-size:34px">📡 온라인 방</div>
-      <button class="btn b-mint" id="hostStartBtn" style="font-size:24px;padding:14px 32px" onclick="startHost()">🎶 게임 시작!</button>
+      <div class="neon-title neon-mint" style="font-size:34px">온라인 방</div>
+      <button class="btn b-mint" id="hostStartBtn" style="font-size:24px;padding:14px 32px" onclick="startHost()">게임 시작!</button>
     </div>
     <div class="setup-grid">
       <div class="box nbox-mint">
@@ -267,7 +269,7 @@ textarea{width:100%;min-height:110px;resize:vertical}
           </div>
           <img class="qr" id="hostQR" alt="QR">
         </div>
-        <h2 style="margin-top:14px">🙋 들어온 사람 <span id="joinCount" class="dim"></span></h2>
+        <h2 style="margin-top:14px">들어온 사람 <span id="joinCount" class="dim"></span></h2>
         <div class="joined" id="joinedList"><span class="dim">참가자를 기다리는 중… 폰으로 QR을 찍거나 방 코드를 입력하세요</span></div>
       </div>
       <div id="hostSettingsSlot"></div>
@@ -279,7 +281,7 @@ textarea{width:100%;min-height:110px;resize:vertical}
 <section id="join" class="screen">
   <div class="wrap" style="max-width:460px">
     <button class="btn b-ghost" onclick="show('home')">← 처음으로</button>
-    <div class="neon-title neon-yellow" style="font-size:40px;margin:20px 0">🙋 방 참가하기</div>
+    <div class="neon-title neon-yellow" style="font-size:40px;margin:20px 0">방 참가하기</div>
     <div class="box nbox-yellow">
       <label class="dim">방 코드</label>
       <input type="text" id="jCode" maxlength="4" inputmode="numeric" style="width:100%;font-size:34px;text-align:center;letter-spacing:8px;margin:6px 0 14px" placeholder="0000">
@@ -301,9 +303,9 @@ textarea{width:100%;min-height:110px;resize:vertical}
     </div>
     <div class="row">
       <div class="info" id="gRound"></div>
-      <button class="btn b-ghost" style="padding:8px 14px;font-size:16px" onclick="openRules()">📖 규칙</button>
-      <button class="btn b-ghost" style="padding:8px 14px;font-size:16px" onclick="toggleAdj()">✋ 칸 조정</button>
-      <button class="btn b-ghost" style="padding:8px 14px;font-size:16px" onclick="toggleFS()">⛶ 전체화면</button>
+      <button class="btn b-ghost" style="padding:8px 14px;font-size:16px" onclick="openRules()">규칙</button>
+      <button class="btn b-ghost" style="padding:8px 14px;font-size:16px" onclick="toggleAdj()">칸 조정</button>
+      <button class="btn b-ghost" style="padding:8px 14px;font-size:16px" onclick="toggleFS()">전체화면</button>
     </div>
   </div>
   <div class="gmain">
@@ -312,7 +314,7 @@ textarea{width:100%;min-height:110px;resize:vertical}
       <div class="box status" id="gStatus"></div>
       <div id="gControls"></div>
     </div>
-    <div>
+    <div id="rightCol">
       <div class="box board hide-adj" id="board"></div>
       <div class="legend" id="legend"></div>
     </div>
@@ -327,7 +329,7 @@ textarea{width:100%;min-height:110px;resize:vertical}
     <span class="dim" id="cPos"></span>
   </div>
   <div id="cVoiceBar" style="display:none;margin-top:8px">
-    <button class="btn b-mint" style="width:100%;font-size:18px" onclick="prepareVoice()">🎙️ 음성 방송 준비하기 (마이크 허용 + 소리 켜기)</button>
+    <button class="btn b-mint" style="width:100%;font-size:18px" onclick="prepareVoice()">음성 방송 준비하기 (마이크 허용 + 소리 켜기)</button>
   </div>
   <div id="cBody"></div>
 </section>
@@ -335,7 +337,7 @@ textarea{width:100%;min-height:110px;resize:vertical}
 <!-- RULES -->
 <div class="ov" id="rulesOv" onclick="if(event.target===this)this.classList.remove('on')">
   <div class="box nbox-pink rules">
-    <div class="neon-title neon-pink" style="font-size:38px;margin-bottom:8px">📖 게임 방법</div>
+    <div class="neon-title neon-pink" style="font-size:38px;margin-bottom:8px">게임 방법</div>
     <h3>1. 단어 카드 공개</h3>
     <p>카드를 뒤집으면 단어가 나와요. 그 단어가 <b>들어간 노래 가사</b>를 재빨리 떠올리세요!</p>
     <h3>2. 마이크 쟁탈전</h3>
@@ -343,21 +345,21 @@ textarea{width:100%;min-height:110px;resize:vertical}
     <h3>3. 이 무대의 주인공은 나!</h3>
     <p>한 소절이라도 괜찮아요. 그 단어가 들어간 노래를 불러 주세요.</p>
     <ul>
-      <li>✅ <b>맞았다면</b> — 카드에 적힌 숫자(●)만큼 앞으로 가요.</li>
-      <li>❌ <b>틀렸다면</b> — 🤐 음소거 토큰을 받고, 마이크는 다시 가운데로! 남은 사람끼리 다시 쟁탈전을 해요.</li>
+      <li><b>맞았다면</b> — 카드에 적힌 숫자(●)만큼 앞으로 가요.</li>
+      <li><b>틀렸다면</b> — 음소거 토큰을 받고, 마이크는 다시 가운데로! 남은 사람끼리 다시 쟁탈전을 해요.</li>
     </ul>
-    <h3>🤐 음소거 토큰</h3>
+    <h3>음소거 토큰</h3>
     <p>음소거 토큰을 받으면 <b>다음 라운드가 끝날 때까지</b> 아무 소리도 낼 수 없어요. (마이크도 못 잡아요)</p>
-    <h3>⭐ 특수 칸 (설정에서 켜기)</h3>
+    <h3>특수 칸 (설정에서 켜기)</h3>
     <ul>
       <li>🎙️ <b>솔로 아티스트</b> 칸에 있으면 솔로 가수의 노래만 정답!</li>
       <li>👥 <b>그룹 아티스트</b> 칸에 있으면 그룹 가수의 노래만 정답!</li>
       <li>💃 <b>신나는 댄스곡</b> 칸에 있으면 안무가 있는 댄스곡만 정답!</li>
     </ul>
     <p>조건을 지키지 못하면 음소거 토큰을 받아요.</p>
-    <h3>🏆 승리 조건</h3>
+    <h3>승리 조건</h3>
     <p>가장 먼저 <b>승리 칸</b>에 도착한 사람이 이겨요!</p>
-    <p class="dim" style="margin-top:10px">🎙️ 온라인 방에서 <b>음성 방송</b>을 켜면 마이크를 잡은 사람의 목소리가 모두의 폰과 방장 화면으로 들려요. 같은 공간에서는 하울링이 날 수 있으니 떨어져서 할 때 써 주세요.</p>
+    <p class="dim" style="margin-top:10px">온라인 방에서 <b>음성 방송</b>을 켜면 마이크를 잡은 사람의 목소리가 모두의 폰과 방장 화면으로 들려요. 같은 공간에서는 하울링이 날 수 있으니 떨어져서 할 때 써 주세요.</p>
     <p class="dim" style="margin-top:6px">※ 정답 판정은 진행자(또는 다 같이 합의)로 해요. 애매하면 다수결!</p>
     <div class="center" style="margin-top:14px"><button class="btn b-pink" onclick="document.getElementById('rulesOv').classList.remove('on')">알겠어요!</button></div>
   </div>
@@ -448,7 +450,7 @@ function bindSettings(){
   const upd=()=>{S={len:+$('#sLen').value,timer:+$('#sTimer').value,special:$('#sSpecial').checked,basic:$('#sBasic').checked,
     eng:$('#sEng').checked,easy:$('#sEasy').checked,custom:$('#sCustom').value,onlyCustom:$('#sOnlyCustom').checked,voice:$('#sVoice').checked};
     if(MODE==='host'&&ROOM&&db){roomRef('meta/voice').set(S.voice);if(G){G.voice=S.voice;commit()}}
-    store.set('gtm_settings',S);$('#deckCount').textContent=`🃏 사용할 단어 카드: ${wordPool().length}장`};
+    store.set('gtm_settings',S);$('#deckCount').textContent=`사용할 단어 카드: ${wordPool().length}장`};
   ['#sLen','#sTimer','#sSpecial','#sBasic','#sEng','#sEasy','#sOnlyCustom','#sVoice'].forEach(id=>$(id).onchange=upd);
   $('#sCustom').oninput=upd;upd();
 }
@@ -499,11 +501,11 @@ function actJudge(ok){
     p.pos=Math.min(G.len,p.pos+G.card.s);sfx.ok();
     G.lastOk={name:p.name,s:G.card.s,w:G.card.w};
     if(p.pos>=G.len){G.phase='over';G.winner=p.id;G.holder=null;lockGrab();commit();sfx.win();return}
-    G.msg=`✅ ${p.name} 정답! ${G.card.s}칸 앞으로!`;
+    G.msg=`${p.name} 정답! ${G.card.s}칸 앞으로!`;
     G.round++;G.phase='ready';G.holder=null;lockGrab();
   }else{
     p.mutedThrough=G.round+1;sfx.no();
-    G.msg=`❌ ${p.name} 🤐 음소거! 다시 마이크 쟁탈전!`;
+    G.msg=`${p.name} 음소거! 다시 마이크 쟁탈전!`;
     G.holder=null;G.phase='grab';openGrab();
   }
   commit();
@@ -511,7 +513,7 @@ function actJudge(ok){
 function actPass(){
   if(Date.now()<guardUntil)return;
   if(G.phase!=='grab'&&G.phase!=='sing')return;
-  G.msg=`⏭️ 아무도 못 불렀어요. ("${G.card.w}")`;G.round++;G.phase='ready';G.holder=null;lockGrab();commit();
+  G.msg=`아무도 못 불렀어요. ("${G.card.w}")`;G.round++;G.phase='ready';G.holder=null;lockGrab();commit();
 }
 function actAdj(id,d){const p=P(id);if(!p)return;p.pos=Math.max(0,Math.min(G.len,p.pos+d));
   if(p.pos>=G.len&&G.phase!=='over'){G.phase='over';G.winner=p.id;lockGrab();sfx.win()}commit()}
@@ -523,7 +525,7 @@ function commit(flip){renderGame(flip);if(MODE==='host'){pushState();rtcSync(G,'
 
 /* ===================== 렌더 (한 화면/호스트) ===================== */
 function renderGame(flip){
-  $('#gRound').textContent=`🎵 ${G.round}라운드`;
+  $('#gRound').textContent=`${G.round}라운드`;
   // 카드
   const wc=$('#wordcard');
   if(G.card&&(G.phase==='grab'||G.phase==='sing')){
@@ -531,7 +533,7 @@ function renderGame(flip){
     wc.innerHTML=`<div class="steps">${'<span></span>'.repeat(G.card.s)}</div><div class="w">${esc(G.card.w)}</div><div class="stepTxt">맞히면 ${G.card.s}칸 ▶</div>`;
   }else{
     wc.className='wordcard back';
-    wc.innerHTML=`<div class="backlogo">🎤<br>GRAB<br>THE MIC</div>`;
+    wc.innerHTML=`<div class="backlogo">GRAB<br>THE MIC</div>`;
   }
   // 상태
   const st=$('#gStatus');let h="";
@@ -542,36 +544,37 @@ function renderGame(flip){
     h=`<div><span class="mic wobble">🎤</span></div><div class="big neon-mint">마이크를 잡아라!</div><div class="msg">${esc(G.msg||"")}${free===0?'<br>모두 음소거예요 — 카드를 넘기세요.':''}</div>`;
   }else if(G.phase==='sing'){
     const p=P(G.holder);const sp=specialAt(p.pos,G.len,G.special);
-    h=`<div class="big" style="color:${p.color};text-shadow:0 0 14px ${p.color}">🎤 ${esc(p.name)}</div>
+    h=`<div class="big" style="color:${p.color};text-shadow:0 0 14px ${p.color}">${esc(p.name)}</div>
        <div class="msg">"${esc(G.card.w)}"이(가) 들어간 노래를 불러 주세요!</div>
        ${sp?`<div><span class="cond">${SPECIALS[sp].ic} ${SPECIALS[sp].cond}</span></div>`:''}
        ${G.timer?`<div class="timer" id="timerTxt">${G.timer}</div>`:''}`;
   }else if(G.phase==='over'){
-    h=`<div class="big neon-yellow">🏆 ${esc(P(G.winner).name)} 승리!</div>`;
+    h=`<div class="big neon-yellow">${esc(P(G.winner).name)} 승리!</div>`;
   }
   st.innerHTML=h;
   // 컨트롤
   const c=$('#gControls');
   if(G.phase==='ready'){
-    c.innerHTML=`<button class="btn b-pink" style="width:100%;font-size:30px;padding:22px" onclick="actFlip()">🃏 카드 뒤집기</button>`;
+    c.innerHTML=`<button class="btn b-pink" style="width:100%;font-size:30px;padding:22px" onclick="actFlip()">카드 뒤집기</button>`;
   }else if(G.phase==='grab'){
     if(MODE==='local'){
-      c.innerHTML=`<div class="dim center" style="margin-bottom:8px;font-size:18px">🎤 떠오르면 <b>내 이름 버튼</b>을 가장 먼저 탭! (키보드 1~0도 돼요)</div>
-        <button class="btn b-ghost" style="width:100%" onclick="actPass()">⏭️ 아무도 모르면 카드 넘기기</button>`;
+      c.innerHTML=`<div class="dim center" style="margin-bottom:8px;font-size:18px">떠오르면 <b>내 이름 버튼</b>을 가장 먼저 탭! (키보드 1~0도 돼요)</div>
+        <button class="btn b-ghost" style="width:100%" onclick="actPass()">아무도 모르면 카드 넘기기</button>`;
     }else{
       c.innerHTML=`<div class="dim" style="margin-bottom:6px">각자 폰에서 먼저 누른 사람이 잡아요. 여기서 직접 고를 수도 있어요.</div>
-      <div class="grabgrid">${G.players.map(p=>`<button class="grabbtn" style="color:${p.color}" ${isMuted(p)?'disabled':''} onclick="actGrab('${p.id}')"><span>${isMuted(p)?'🤐':'🎤'} ${esc(p.name)}</span></button>`).join('')}</div>
-      <button class="btn b-ghost" style="width:100%;margin-top:10px" onclick="actPass()">⏭️ 아무도 모르면 카드 넘기기</button>`;
+      <div class="grabgrid">${G.players.map(p=>`<button class="grabbtn" style="color:${p.color}" ${isMuted(p)?'disabled':''} onclick="actGrab('${p.id}')"><span>${isMuted(p)?'':''} ${esc(p.name)}</span></button>`).join('')}</div>
+      <button class="btn b-ghost" style="width:100%;margin-top:10px" onclick="actPass()">아무도 모르면 카드 넘기기</button>`;
     }
   }else if(G.phase==='sing'){
-    c.innerHTML=`<div class="ctrl"><button class="btn b-mint" onclick="actJudge(true)">⭕ 정답!</button><button class="btn b-red" onclick="actJudge(false)">❌ 오답</button></div>
-      <button class="btn b-ghost" style="width:100%;margin-top:10px" onclick="actPass()">⏭️ 카드 넘기기</button>`;
-  }else c.innerHTML=`<button class="btn b-yellow" style="width:100%" onclick="showWin()">🏆 결과 보기</button>`;
+    c.innerHTML=`<div class="ctrl"><button class="btn b-mint" onclick="actJudge(true)">정답!</button><button class="btn b-red" onclick="actJudge(false)">오답</button></div>
+      <button class="btn b-ghost" style="width:100%;margin-top:10px" onclick="actPass()">카드 넘기기</button>`;
+  }else c.innerHTML=`<button class="btn b-yellow" style="width:100%" onclick="showWin()">결과 보기</button>`;
   // 버저 (한 화면 모드)
   const bz=$('#buzzers');placeBuzzers();
   if(MODE==='local'&&G.phase==='grab'){
     bz.classList.add('on');
-    bz.innerHTML=G.players.map(p=>`<button class="buzz" style="color:${p.color}" ${isMuted(p)?'disabled':''} onpointerdown="buzz(event,'${p.id}')" ontouchstart="buzz(event,'${p.id}')"><div class="bic">${isMuted(p)?'🤐':'🎤'}</div><span>${esc(p.name)}</span><small>${isMuted(p)?'음소거 중':'탭해서 마이크 잡기'}</small></button>`).join('');
+    bz.innerHTML=G.players.map(p=>`<button class="buzz" style="color:${p.color}" ${isMuted(p)?'disabled':''} onpointerdown="buzz(event,'${p.id}')" ontouchstart="buzz(event,'${p.id}')"><span>${esc(p.name)}</span><small>${isMuted(p)?'음소거 중':'탭해서 마이크 잡기'}</small></button>`).join('');
+    fitBuzzers();
   }else{bz.classList.remove('on');bz.innerHTML=''}
   // 보드
   let b="";
@@ -594,10 +597,23 @@ function renderGame(flip){
   if(G.phase==='over'&&!renderGame._won){renderGame._won=true;setTimeout(showWin,700)}
   if(G.phase!=='over')renderGame._won=false;
 }
+// 버튼은 최대 두 줄, 이름은 한 줄에 들어가도록 글자 크기 맞추기
+function fitBuzzers(){
+  const bz=$('#buzzers');if(!bz.classList.contains('on'))return;
+  const n=bz.children.length,narrow=bz.classList.contains('narrow');
+  const cols=narrow?2:(n<=5?n:Math.ceil(n/2));
+  bz.style.gridTemplateColumns=`repeat(${cols},1fr)`;
+  bz.classList.toggle('many',!narrow&&n>5);
+  bz.querySelectorAll('.buzz span').forEach(sp=>{
+    sp.style.fontSize='';let f=parseFloat(getComputedStyle(sp).fontSize);
+    while(sp.scrollWidth>sp.clientWidth+1&&f>14){f-=2;sp.style.fontSize=f+'px'}
+  });
+}
+window.addEventListener('resize',()=>{if(G&&MODE==='local')fitBuzzers()});
 // 좁은 화면(폰·세로 태블릿)에서는 버저를 카드 바로 아래로, 넓은 화면에서는 아래쪽 전체 폭으로
 function placeBuzzers(){
   const bz=$('#buzzers'),narrow=window.innerWidth<=900;
-  const target=narrow?$('#game .stage'):$('#game');
+  const target=narrow?$('#game .stage'):$('#rightCol');
   if(bz.parentElement!==target){narrow?$('#gControls').before(bz):target.appendChild(bz)}
   bz.classList.toggle('narrow',narrow);
 }
@@ -607,7 +623,7 @@ function showWin(){
   $('#winName').textContent=w.name;$('#winName').style.color=w.color;
   const r=[...G.players].sort((a,b)=>b.pos-a.pos);
   $('#winRank').innerHTML=r.map((p,i)=>`${i+1}위 ${esc(p.name)} — ${p.pos}칸`).join('<br>');
-  $('#winBtns').innerHTML=`<button class="btn b-pink" onclick="actRestart()">🔁 같은 사람과 다시 하기</button><button class="btn b-ghost" onclick="$('#winOv').classList.remove('on')">보드 보기</button>`;
+  $('#winBtns').innerHTML=`<button class="btn b-pink" onclick="actRestart()">같은 사람과 다시 하기</button><button class="btn b-ghost" onclick="$('#winOv').classList.remove('on')">보드 보기</button>`;
   $('#winOv').classList.add('on');confetti();
 }
 function confetti(){for(let i=0;i<80;i++){const d=document.createElement('div');d.className='confetti';d.style.left=Math.random()*100+'vw';
@@ -618,7 +634,7 @@ setInterval(()=>{
   if(!G||G.phase!=='sing'||!G.timer)return;
   const left=Math.ceil(G.timer-(now()-G.singAt)/1000);
   ['#timerTxt','#cTimer'].forEach(id=>{const el=$(id);if(!el)return;
-    if(left>0){el.textContent=left;el.classList.remove('out')}else{el.textContent='⏰ 시간 초과!';el.classList.add('out')}});
+    if(left>0){el.textContent=left;el.classList.remove('out')}else{el.textContent='시간 초과!';el.classList.add('out')}});
 },250);
 
 /* ===================== 로컬 모드 ===================== */
@@ -740,7 +756,7 @@ async function joinRoom(){
   jr.on('value',s=>{cJoins=s.val()||{};if(CROOM&&!cJoins[ME]){leaveClient('방에서 나가게 되었어요.');return}renderClient()});
   mr.on('value',s=>{if(CROOM&&!s.exists()){leaveClient('방장이 방을 닫았어요.');return}cMeta=s.val()||{};renderClient()});
   cRefs=[sr,jr,mr];
-  $('#cMe').textContent=`🙋 ${name} · 방 ${code}`;show('client');renderClient();
+  $('#cMe').textContent=`${name} · 방 ${code}`;show('client');renderClient();
 }
 function leaveClient(msg){rtcTeardown();releaseMic();cRefs.forEach(r=>r.off());cRefs=[];CROOM=null;cState=null;show('home');if(msg)toast(msg)}
 let lastClientPhase=null,lastHolder=null;
@@ -756,9 +772,9 @@ function _renderClient(){
   if(!s||!s.players){
     const names=Object.values(cJoins).map(j=>esc(j.name));
     B.innerHTML=`<div class="neon-title neon-pink" style="font-size:44px;margin:30px 0 10px">GRAB THE MIC</div>
-      <div class="cl-state">방장이 게임을 시작하기를 기다리는 중… ⏳</div>
+      <div class="cl-state">방장이 게임을 시작하기를 기다리는 중… </div>
       <div class="joined" style="justify-content:center;margin-top:20px">${names.map(n=>`<span class="chip">${n}</span>`).join('')}</div>
-      <button class="btn b-ghost" style="margin-top:30px" onclick="openRules()">📖 규칙 보기</button>`;
+      <button class="btn b-ghost" style="margin-top:30px" onclick="openRules()">규칙 보기</button>`;
     $('#cPos').textContent='';return;
   }
   G=s; // 타이머·판정용
@@ -766,10 +782,10 @@ function _renderClient(){
   if(!me){B.innerHTML='<div class="cl-state" style="margin-top:40px">곧 참여할 수 있어요…</div>';return}
   const muted=me.mutedThrough>=s.round;
   const sp=specialAt(me.pos,s.len,s.special);
-  $('#cPos').textContent=`📍 ${me.pos}/${s.len}칸`;
+  $('#cPos').textContent=`${me.pos}/${s.len}칸`;
   let h=`<div class="dim" style="margin-top:6px">${s.round}라운드</div>`;
   if(s.phase==='ready'){
-    h+=`<div class="cl-word neon-pink">🃏</div><div class="cl-state">다음 카드를 기다려요…</div><div class="dim" style="margin-top:8px;font-size:18px">${esc(s.msg||'')}</div>`;
+    h+=`<div class="cl-word neon-pink" style="font-size:40px;margin-top:30px">다음 카드</div><div class="cl-state">방장이 카드를 뒤집기를 기다려요…</div><div class="dim" style="margin-top:8px;font-size:18px">${esc(s.msg||'')}</div>`;
   }else if(s.phase==='grab'){
     h+=`<div class="cl-word neon-mint">${esc(s.card.w)}</div><div class="dim">맞히면 ${'●'.repeat(s.card.s)} ${s.card.s}칸</div>
       ${sp?`<div><span class="cond">${SPECIALS[sp].ic} ${SPECIALS[sp].cond}</span></div>`:''}
@@ -781,7 +797,7 @@ function _renderClient(){
     const mine=s.holder===ME;
     h+=`<div class="cl-word neon-mint">${esc(s.card.w)}</div>
       <button class="bigmic ${mine?'mine':''}" disabled>${mine?'🎤':'🎶'}</button>
-      <div class="cl-state" style="font-size:28px">${mine?'🎉 내가 잡았어요! 노래하세요!':`${esc(hp.name)} 이(가) 노래하는 중…`}</div>
+      <div class="cl-state" style="font-size:28px">${mine?'내가 잡았어요! 노래하세요!':`${esc(hp.name)} 이(가) 노래하는 중…`}</div>
       ${mine&&sp?`<div><span class="cond">${SPECIALS[sp].ic} ${SPECIALS[sp].cond}</span></div>`:''}
       ${mine&&s.timer?`<div class="timer" id="cTimer">${s.timer}</div>`:''}`;
     if(mine&&lastHolder!==ME){try{navigator.vibrate&&navigator.vibrate(200)}catch(e){}}
@@ -819,11 +835,11 @@ function releaseMic(){if(micStream){micStream.getTracks().forEach(t=>t.stop());m
 function unlockAudio(){
   const a=$('#rtcAudio');try{a.muted=false;const p=a.play();if(p)p.catch(()=>{})}catch(e){}
   try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();AC.resume()}catch(e){}
-  if(a.srcObject&&rtc.sid)setVoiceInd('🔊 노래 듣는 중');
+  if(a.srcObject&&rtc.sid)setVoiceInd('노래 듣는 중');
 }
 async function prepareVoice(){
   unlockAudio();
-  try{await getMic();voicePrepared=true;toast('🎙️ 준비 완료! 마이크를 잡으면 내 목소리가 방송돼요')}
+  try{await getMic();voicePrepared=true;toast('준비 완료! 마이크를 잡으면 내 목소리가 방송돼요')}
   catch(e){voicePrepared=true;toast('마이크를 허용하지 않아서 듣기만 할 수 있어요')}
   renderClient();
 }
@@ -850,7 +866,7 @@ async function rtcBroadcast(st,myId){
   try{stream=await getMic()}catch(e){toast('마이크 권한을 허용해야 내 노래가 방송돼요');return}
   if(rtc.sid!==sid)return;
   stream.getTracks().forEach(t=>t.enabled=true);
-  setVoiceInd('🔴 내 목소리 방송 중');
+  setVoiceInd('내 목소리 방송 중');
   const base=rtcBase();
   const ids=st.players.map(p=>p.id).filter(id=>id!==myId).concat('__host');
   for(const lid of ids){
@@ -872,15 +888,15 @@ async function rtcBroadcast(st,myId){
 function rtcListen(st,myId){
   const sid=rtc.sid,base=rtcBase();let pc=null;const q=[];
   const hn=esc((st.players.find(p=>p.id===st.holder)||{}).name||'');
-  setVoiceInd(`🔊 ${hn} 목소리 연결 중…`);
+  setVoiceInd(`${hn} 목소리 연결 중…`);
   const or=base.child('offers/'+myId);
   or.on('value',async s=>{const v=s.val();if(!v||pc||rtc.sid!==sid)return;
     pc=new RTCPeerConnection({iceServers:ICE});rtc.pcs.h=pc;
     pc.ontrack=e=>{const a=$('#rtcAudio');a.srcObject=e.streams[0]||new MediaStream([e.track]);
-      const p=a.play();const ok=()=>{if(rtc.sid===sid)setVoiceInd(`🔊 ${hn} 노래 듣는 중`)};
-      if(p&&p.then)p.then(ok).catch(()=>{if(rtc.sid===sid)setVoiceInd(`🔇 소리가 꺼져 있어요<button onclick="unlockAudio()">탭해서 듣기</button>`)});else ok()};
+      const p=a.play();const ok=()=>{if(rtc.sid===sid)setVoiceInd(`${hn} 노래 듣는 중`)};
+      if(p&&p.then)p.then(ok).catch(()=>{if(rtc.sid===sid)setVoiceInd(`소리가 꺼져 있어요<button onclick="unlockAudio()">탭해서 듣기</button>`)});else ok()};
     pc.onicecandidate=e=>{if(e.candidate)base.child('cl/'+myId).push(e.candidate.toJSON())};
-    pc.onconnectionstatechange=()=>{if(pc.connectionState==='failed'&&rtc.sid===sid)setVoiceInd('⚠️ 음성 연결 실패 (네트워크 제한)')};
+    pc.onconnectionstatechange=()=>{if(pc.connectionState==='failed'&&rtc.sid===sid)setVoiceInd('음성 연결 실패 (네트워크 제한)')};
     try{await pc.setRemoteDescription(v);const ans=await pc.createAnswer();await pc.setLocalDescription(ans);
       if(rtc.sid!==sid)return;
       base.child('answers/'+myId).set({type:ans.type,sdp:ans.sdp});

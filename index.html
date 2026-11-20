@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>그랩 더 마이크 — 가사 단어 노래 파티 게임</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Jua&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<style>
+:root{
+  --bg:#0d0b14;--panel:#17131f;--line:#2b2438;--text:#f5f0ff;--dim:#9a90ad;
+  --pink:#ff3d9a;--mint:#2ef2c9;--yellow:#ffd23f;--purple:#9b5cff;--red:#ff5a5a;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:'Jua',system-ui,sans-serif;overflow-x:hidden;
+  background-image:radial-gradient(circle at 15% 10%,#ff3d9a22,transparent 40%),radial-gradient(circle at 85% 90%,#2ef2c922,transparent 40%)}
+button{font-family:inherit;cursor:pointer;border:none}
+input,select,textarea{font-family:inherit;font-size:16px}
+.screen{display:none;min-height:100vh;padding:20px}
+.screen.on{display:block}
+.neon-title{font-family:'Black Han Sans',sans-serif;line-height:1;text-align:center}
+.neon-pink{color:#fff;text-shadow:0 0 6px var(--pink),0 0 18px var(--pink),0 0 36px var(--pink)}
+.neon-mint{color:#fff;text-shadow:0 0 6px var(--mint),0 0 18px var(--mint),0 0 36px var(--mint)}
+.neon-yellow{color:#fff;text-shadow:0 0 6px var(--yellow),0 0 18px var(--yellow)}
+.box{background:var(--panel);border:2px solid var(--line);border-radius:18px;padding:18px}
+.nbox-pink{border-color:var(--pink);box-shadow:0 0 14px #ff3d9a55,inset 0 0 14px #ff3d9a22}
+.nbox-mint{border-color:var(--mint);box-shadow:0 0 14px #2ef2c955,inset 0 0 14px #2ef2c922}
+.nbox-yellow{border-color:var(--yellow);box-shadow:0 0 14px #ffd23f55,inset 0 0 14px #ffd23f22}
+.btn{padding:14px 22px;border-radius:14px;font-size:20px;color:#14101c;font-weight:bold;transition:transform .08s,filter .2s}
+.btn:active{transform:scale(.96)}
+.btn:disabled{filter:grayscale(1) brightness(.5);cursor:not-allowed}
+.b-pink{background:var(--pink);color:#fff;box-shadow:0 0 16px #ff3d9a88}
+.b-mint{background:var(--mint);box-shadow:0 0 16px #2ef2c988}
+.b-yellow{background:var(--yellow);box-shadow:0 0 16px #ffd23f88}
+.b-ghost{background:transparent;color:var(--text);border:2px solid var(--line)}
+.b-red{background:var(--red);color:#fff;box-shadow:0 0 16px #ff5a5a88}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.center{text-align:center}
+.dim{color:var(--dim)}
+.wrap{max-width:1200px;margin:0 auto}
+h2{font-size:24px;margin-bottom:12px}
+label.opt{display:flex;align-items:center;gap:8px;font-size:18px;padding:6px 0}
+label.opt input[type=checkbox]{width:22px;height:22px;accent-color:var(--pink)}
+select,input[type=text],input[type=number],textarea{background:#0f0c16;color:var(--text);border:2px solid var(--line);border-radius:10px;padding:10px}
+textarea{width:100%;min-height:110px;resize:vertical}
+.footer{text-align:center;color:var(--dim);font-size:14px;margin-top:28px}
+.footer a{color:var(--mint)}
+
+/* HOME */
+.home-logo{margin:30px 0 8px}
+.home-logo .l1{font-size:clamp(54px,12vw,120px)}
+.home-logo .l2{font-size:clamp(28px,6vw,56px);margin-top:6px}
+.home-sub{text-align:center;font-size:20px;color:var(--yellow);margin-bottom:28px}
+.menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;max-width:860px;margin:0 auto}
+.menu .card{cursor:pointer;text-align:center;padding:24px 16px;transition:transform .15s}
+.menu .card:hover{transform:translateY(-4px)}
+.menu .card .ic{font-size:52px}
+.menu .card .t{font-size:24px;margin:8px 0 4px}
+.menu .card .d{color:var(--dim);font-size:15px}
+
+/* setup */
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.pinput{display:flex;align-items:center;gap:8px}
+.pinput .dot,.dot{width:22px;height:22px;border-radius:50%;flex:none;box-shadow:0 0 8px currentColor}
+.pinput input{flex:1;min-width:0}
+.set-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:700px){.set-grid{grid-template-columns:1fr}}
+
+.setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.setup-grid #settingsPanel{margin-top:0!important}
+.setup-grid .set-grid{grid-template-columns:1fr;gap:0}
+@media(max-width:860px){.setup-grid{grid-template-columns:1fr}}
+.setup-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+/* lobby */
+.code{font-family:'Black Han Sans';font-size:clamp(60px,10vw,110px);letter-spacing:10px}
+.joined{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chip{display:flex;align-items:center;gap:6px;background:#0f0c16;border:2px solid var(--line);border-radius:999px;padding:6px 12px;font-size:18px}
+.chip .x{background:none;color:var(--dim);font-size:18px;padding:0 2px}
+.qr{background:#fff;padding:8px;border-radius:12px;width:170px;height:170px}
+
+/* GAME */
+#game{padding:12px}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.topbar .ttl{font-family:'Black Han Sans';font-size:28px}
+.topbar .info{font-size:20px;color:var(--yellow)}
+.gmain{display:grid;grid-template-columns:minmax(320px,38%) 1fr;gap:14px;align-items:start}
+@media(max-width:900px){.gmain{grid-template-columns:1fr}}
+.stage{display:flex;flex-direction:column;gap:12px}
+.wordcard{position:relative;border-radius:22px;min-height:230px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;
+  background:linear-gradient(145deg,#2ef2c9,#19c9a6);color:#0d0b14;box-shadow:0 0 30px #2ef2c977;transition:transform .4s}
+.wordcard.back{background:linear-gradient(145deg,#ff3d9a,#d61f7c);color:#fff;box-shadow:0 0 30px #ff3d9a77}
+.wordcard .w{font-family:'Black Han Sans';font-size:clamp(56px,8vw,110px);line-height:1.05;text-align:center;word-break:keep-all}
+.wordcard .steps{position:absolute;top:12px;right:16px;display:flex;gap:4px}
+.wordcard .steps span{width:20px;height:20px;border-radius:50%;background:#0d0b14;opacity:.85}
+.wordcard .stepTxt{position:absolute;bottom:10px;right:16px;font-size:18px;opacity:.8}
+.wordcard .backlogo{font-family:'Black Han Sans';font-size:54px;text-align:center;line-height:1}
+.flip{animation:flip .45s}
+@keyframes flip{0%{transform:rotateY(90deg)}100%{transform:rotateY(0)}}
+.status{min-height:120px;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:6px}
+.status .big{font-family:'Black Han Sans';font-size:clamp(30px,4vw,48px)}
+.status .msg{font-size:20px;color:var(--dim)}
+.cond{display:inline-block;background:var(--yellow);color:#14101c;border-radius:10px;padding:6px 12px;font-size:20px;margin-top:4px}
+.timer{font-family:'Black Han Sans';font-size:60px;color:var(--yellow)}
+.timer.out{color:var(--red);animation:blink .5s infinite alternate}
+@keyframes blink{to{opacity:.3}}
+.mic{font-size:80px;display:inline-block;filter:drop-shadow(0 0 14px var(--pink))}
+.mic.wobble{animation:wob .6s infinite}
+@keyframes wob{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+.grabgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.grabbtn{padding:12px 8px;border-radius:12px;font-size:20px;color:#fff;border:3px solid currentColor;background:#0f0c16;display:flex;align-items:center;justify-content:center;gap:6px}
+.grabbtn span{color:#fff}
+.grabbtn:disabled{opacity:.35}
+.ctrl{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ctrl .btn{font-size:24px;padding:18px}
+.board{padding:12px}
+.lane{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px dashed var(--line)}
+.lane:last-child{border-bottom:none}
+.lane .nm{width:120px;flex:none;display:flex;align-items:center;gap:6px;font-size:19px;overflow:hidden;white-space:nowrap}
+.lane .nm .mute{font-size:18px}
+.lane.holder .nm{color:var(--yellow)}
+.cells{flex:1;display:flex;gap:3px}
+.cell{flex:1;min-width:0;height:38px;border-radius:7px;background:#221c2e;display:flex;align-items:center;justify-content:center;font-size:16px;position:relative}
+.cell.start{background:#2b2438}
+.cell.goal{background:linear-gradient(135deg,#ffd23f,#ff9f1c);color:#14101c}
+.cell.sp-solo{background:#3a1d33}
+.cell.sp-group{background:#1d2f3a}
+.cell.sp-dance{background:#3a351d}
+.cell .tok{width:30px;height:30px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 10px currentColor;position:absolute}
+.lane .adj{display:flex;gap:2px}
+.lane .adj button{background:#221c2e;color:var(--dim);width:26px;height:26px;border-radius:6px;font-size:16px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:15px;color:var(--dim);margin-top:8px}
+.hide-adj .adj{display:none}
+
+/* buzzers (한 화면 모드) */
+#buzzers{display:none;margin-top:14px;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))}
+#buzzers.on{display:grid}
+#buzzers.narrow{margin-top:0;grid-template-columns:repeat(2,1fr);gap:10px}
+#buzzers.narrow .buzz{min-height:clamp(120px,18vh,180px);font-size:clamp(28px,8vw,44px)}
+#buzzers.narrow .buzz .bic{font-size:clamp(34px,10vw,56px)}
+.buzz{min-height:clamp(150px,28vh,280px);border-radius:26px;font-family:'Black Han Sans';font-size:clamp(34px,4.6vw,68px);color:#fff;
+  border:4px solid currentColor;background:#0f0c16;box-shadow:0 0 18px currentColor,inset 0 0 26px #0008;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  touch-action:manipulation;user-select:none;-webkit-user-select:none;transition:transform .06s}
+.buzz span{color:#fff;text-shadow:0 0 10px currentColor}
+.buzz small{font-family:'Jua';font-size:clamp(16px,1.6vw,24px);color:var(--dim)}
+.buzz .bic{font-size:clamp(40px,5vw,80px);line-height:1}
+.buzz:active{transform:scale(.95)}
+.buzz:disabled{opacity:.3;box-shadow:none}
+#voiceInd{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:65;background:#000c;border:2px solid var(--pink);border-radius:999px;padding:6px 16px;font-size:17px;display:none;box-shadow:0 0 14px #ff3d9a66}
+#voiceInd.on{display:block}
+#voiceInd button{background:var(--mint);color:#14101c;border-radius:999px;padding:4px 12px;font-size:16px;margin-left:6px}
+/* client */
+#client{padding:14px;text-align:center}
+.cl-word{font-family:'Black Han Sans';font-size:clamp(48px,14vw,90px);margin:6px 0;word-break:keep-all}
+.bigmic{width:min(78vw,340px);height:min(78vw,340px);border-radius:50%;font-size:clamp(90px,26vw,150px);margin:18px auto;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 35% 30%,#ff7dbd,#ff3d9a 55%,#b0135f);box-shadow:0 0 40px #ff3d9aaa,inset 0 -10px 30px #0004;color:#fff;transition:transform .08s}
+.bigmic:active{transform:scale(.94)}
+.bigmic:disabled{background:#2b2438;box-shadow:none;filter:grayscale(1)}
+.bigmic.mine{background:radial-gradient(circle at 35% 30%,#7dffe5,#2ef2c9 55%,#12a487);box-shadow:0 0 50px #2ef2c9cc}
+.cl-state{font-size:24px;min-height:34px}
+
+/* overlay */
+.ov{position:fixed;inset:0;background:#000c;display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+.ov.on{display:flex}
+.ov .box{max-width:720px;width:100%;max-height:90vh;overflow:auto}
+.rules p,.rules li{font-size:18px;line-height:1.6}
+.rules ol,.rules ul{padding-left:22px}
+.rules h3{color:var(--mint);margin:14px 0 6px;font-size:21px}
+.win-name{font-family:'Black Han Sans';font-size:clamp(50px,10vw,100px)}
+.rank{font-size:20px;margin-top:10px;line-height:1.7}
+.confetti{position:fixed;top:-20px;width:10px;height:16px;z-index:60;animation:fall linear forwards;pointer-events:none}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#000d;border:2px solid var(--mint);padding:10px 18px;border-radius:12px;font-size:18px;z-index:70;display:none}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<section id="home" class="screen on">
+  <div class="home-logo neon-title">
+    <div class="l1 neon-pink">GRAB THE MIC</div>
+    <div class="l2 neon-mint">그랩 더 마이크</div>
+  </div>
+  <p class="home-sub">🎤 단어를 보고 가장 먼저 마이크를 잡아, 그 단어가 들어간 노래를 불러라!</p>
+  <div class="menu">
+    <div class="card box nbox-pink" onclick="goLocalSetup()"><div class="ic">📺</div><div class="t">한 화면 모드</div><div class="d">TV·노트북·태블릿 하나로 다 같이!<br>떠오르면 화면 속 내 이름 버튼을 가장 먼저 탭!</div></div>
+    <div class="card box nbox-mint" onclick="goHost()"><div class="ic">📡</div><div class="t">온라인 방 만들기</div><div class="d">큰 화면에 보드를 띄우고<br>모두 각자 폰으로 마이크 버튼!</div></div>
+    <div class="card box nbox-yellow" onclick="goJoin()"><div class="ic">🙋</div><div class="t">방 참가하기</div><div class="d">방 코드를 입력하고 내 폰을 마이크로!</div></div>
+  </div>
+  <div class="row" style="justify-content:center;margin-top:20px">
+    <button class="btn b-ghost" onclick="openRules()">📖 규칙 보기</button>
+  </div>
+  <div class="footer">made by m00n · <a href="https://m00n-ssaem.github.io/site/" target="_blank">m00n 웹앱 모음</a></div>
+</section>
+
+<!-- SETTINGS PANEL (moved between screens) -->
+<div id="settingsHolder" style="display:none">
+<div id="settingsPanel" class="box" style="margin-top:14px">
+  <h2>⚙️ 게임 설정</h2>
+  <div class="set-grid">
+    <div>
+      <label class="opt">🏁 보드 길이
+        <select id="sLen"><option value="8">짧게 (8칸)</option><option value="12">보통 (12칸)</option><option value="16">길게 (16칸)</option><option value="20">아주 길게 (20칸)</option></select>
+      </label>
+      <label class="opt">⏱️ 노래 시작 제한 시간
+        <select id="sTimer"><option value="0">끄기</option><option value="5">5초</option><option value="10">10초</option><option value="15">15초</option></select>
+      </label>
+      <label class="opt"><input type="checkbox" id="sSpecial"> ⭐ 특수 칸 사용 (솔로·그룹·댄스곡 조건)</label>
+    </div>
+    <div>
+      <label class="opt"><input type="checkbox" id="sBasic"> 🇰🇷 기본 우리말 단어</label>
+      <label class="opt"><input type="checkbox" id="sEng"> 🔤 영어 가사 단어 (love, baby…)</label>
+      <label class="opt"><input type="checkbox" id="sEasy"> 🐣 쉬운 단어만 (자주 나오는 단어)</label>
+      <label class="opt"><input type="checkbox" id="sVoice"> 🎙️ 음성 방송 <span class="dim" style="font-size:15px">(온라인 방 — 마이크 잡은 사람 목소리만 모두에게)</span></label>
+    </div>
+  </div>
+  <details style="margin-top:8px">
+    <summary style="cursor:pointer;font-size:18px">✏️ 나만의 단어 추가하기</summary>
+    <p class="dim" style="margin:6px 0">한 줄에 하나씩. 쉼표 뒤에 칸 수(1~3)를 적을 수 있어요. 예) <b>떡볶이,3</b></p>
+    <textarea id="sCustom" placeholder="떡볶이,3&#10;노래방,2&#10;여행"></textarea>
+    <label class="opt"><input type="checkbox" id="sOnlyCustom"> 추가한 단어만 사용</label>
+  </details>
+  <p class="dim" id="deckCount" style="margin-top:6px"></p>
+</div>
+
+</div>
+
+<!-- LOCAL SETUP -->
+<section id="localSetup" class="screen">
+  <div class="wrap">
+    <div class="setup-head">
+      <button class="btn b-ghost" onclick="show('home')">← 처음으로</button>
+      <div class="neon-title neon-pink" style="font-size:34px">📺 한 화면 모드</div>
+      <button class="btn b-pink" style="font-size:24px;padding:14px 32px" onclick="startLocal()">🎶 게임 시작!</button>
+    </div>
+    <div class="setup-grid">
+      <div class="box nbox-pink">
+        <div class="row" style="justify-content:space-between">
+          <h2 style="margin:0">🎤 참가자</h2>
+          <label class="opt">인원 <select id="pCount"></select></label>
+        </div>
+        <p class="dim" style="margin:4px 0 10px">참가자 이름이나 팀 이름을 적어 주세요. (2~10명)</p>
+        <div class="pgrid" id="pInputs"></div>
+      </div>
+      <div id="localSettingsSlot"></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOST LOBBY -->
+<section id="hostLobby" class="screen">
+  <div class="wrap">
+    <div class="setup-head">
+      <button class="btn b-ghost" onclick="leaveHost()">← 처음으로</button>
+      <div class="neon-title neon-mint" style="font-size:34px">📡 온라인 방</div>
+      <button class="btn b-mint" id="hostStartBtn" style="font-size:24px;padding:14px 32px" onclick="startHost()">🎶 게임 시작!</button>
+    </div>
+    <div class="setup-grid">
+      <div class="box nbox-mint">
+        <div class="row" style="justify-content:space-around;gap:20px">
+          <div class="center">
+            <div class="dim" style="font-size:20px">방 코드</div>
+            <div class="code neon-mint" id="hostCode">----</div>
+            <div class="dim" id="hostLink" style="font-size:15px;word-break:break-all"></div>
+          </div>
+          <img class="qr" id="hostQR" alt="QR">
+        </div>
+        <h2 style="margin-top:14px">🙋 들어온 사람 <span id="joinCount" class="dim"></span></h2>
+        <div class="joined" id="joinedList"><span class="dim">참가자를 기다리는 중… 폰으로 QR을 찍거나 방 코드를 입력하세요</span></div>
+      </div>
+      <div id="hostSettingsSlot"></div>
+    </div>
+  </div>
+</section>
+
+<!-- JOIN -->
+<section id="join" class="screen">
+  <div class="wrap" style="max-width:460px">
+    <button class="btn b-ghost" onclick="show('home')">← 처음으로</button>
+    <div class="neon-title neon-yellow" style="font-size:40px;margin:20px 0">🙋 방 참가하기</div>
+    <div class="box nbox-yellow">
+      <label class="dim">방 코드</label>
+      <input type="text" id="jCode" maxlength="4" inputmode="numeric" style="width:100%;font-size:34px;text-align:center;letter-spacing:8px;margin:6px 0 14px" placeholder="0000">
+      <label class="dim">이름</label>
+      <input type="text" id="jName" maxlength="8" style="width:100%;font-size:24px;margin:6px 0 16px" placeholder="닉네임">
+      <button class="btn b-yellow" style="width:100%;font-size:24px" onclick="joinRoom()">입장하기</button>
+      <p class="dim center" id="jErr" style="margin-top:10px;color:var(--red)"></p>
+    </div>
+  </div>
+</section>
+
+<!-- GAME (local & host) -->
+<section id="game" class="screen">
+  <div class="topbar">
+    <div class="row">
+      <button class="btn b-ghost" style="padding:8px 14px;font-size:16px" onclick="quitGame()">✕ 나가기</button>
+      <div class="ttl neon-pink">GRAB THE MIC</div>
+      <span id="gCodeTag" class="dim" style="font-size:18px"></span>
+    </div>
+    <div class="row">
+      <div class="info" id="gRound"></div>
+      <button class="btn b-ghost" style="padding:8px 14px;font-size:16px" onclick="openRules()">📖 규칙</button>
+      <button class="btn b-ghost" style="padding:8px 14px;font-size:16px" onclick="toggleAdj()">✋ 칸 조정</button>
+      <button class="btn b-ghost" style="padding:8px 14px;font-size:16px" onclick="toggleFS()">⛶ 전체화면</button>
+    </div>
+  </div>
+  <div class="gmain">
+    <div class="stage">
+      <div id="wordcard" class="wordcard back"></div>
+      <div class="box status" id="gStatus"></div>
+      <div id="gControls"></div>
+    </div>
+    <div>
+      <div class="box board hide-adj" id="board"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+  </div>
+  <div id="buzzers"></div>
+</section>
+
+<!-- CLIENT -->
+<section id="client" class="screen">
+  <div class="row" style="justify-content:space-between">
+    <span class="dim" id="cMe"></span>
+    <span class="dim" id="cPos"></span>
+  </div>
+  <div id="cVoiceBar" style="display:none;margin-top:8px">
+    <button class="btn b-mint" style="width:100%;font-size:18px" onclick="prepareVoice()">🎙️ 음성 방송 준비하기 (마이크 허용 + 소리 켜기)</button>
+  </div>
+  <div id="cBody"></div>
+</section>
+
+<!-- RULES -->
+<div class="ov" id="rulesOv" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="box nbox-pink rules">
+    <div class="neon-title neon-pink" style="font-size:38px;margin-bottom:8px">📖 게임 방법</div>
+    <h3>1. 단어 카드 공개</h3>
+    <p>카드를 뒤집으면 단어가 나와요. 그 단어가 <b>들어간 노래 가사</b>를 재빨리 떠올리세요!</p>
+    <h3>2. 마이크 쟁탈전</h3>
+    <p>누구보다 빠르게 마이크를 잡으세요! (한 화면 모드: 화면 속 <b>내 이름 버튼</b>을 가장 먼저 탭 / 온라인: 내 폰의 마이크 버튼)</p>
+    <h3>3. 이 무대의 주인공은 나!</h3>
+    <p>한 소절이라도 괜찮아요. 그 단어가 들어간 노래를 불러 주세요.</p>
+    <ul>
+      <li>✅ <b>맞았다면</b> — 카드에 적힌 숫자(●)만큼 앞으로 가요.</li>
+      <li>❌ <b>틀렸다면</b> — 🤐 음소거 토큰을 받고, 마이크는 다시 가운데로! 남은 사람끼리 다시 쟁탈전을 해요.</li>
+    </ul>
+    <h3>🤐 음소거 토큰</h3>
+    <p>음소거 토큰을 받으면 <b>다음 라운드가 끝날 때까지</b> 아무 소리도 낼 수 없어요. (마이크도 못 잡아요)</p>
+    <h3>⭐ 특수 칸 (설정에서 켜기)</h3>
+    <ul>
+      <li>🎙️ <b>솔로 아티스트</b> 칸에 있으면 솔로 가수의 노래만 정답!</li>
+      <li>👥 <b>그룹 아티스트</b> 칸에 있으면 그룹 가수의 노래만 정답!</li>
+      <li>💃 <b>신나는 댄스곡</b> 칸에 있으면 안무가 있는 댄스곡만 정답!</li>
+    </ul>
+    <p>조건을 지키지 못하면 음소거 토큰을 받아요.</p>
+    <h3>🏆 승리 조건</h3>
+    <p>가장 먼저 <b>승리 칸</b>에 도착한 사람이 이겨요!</p>
+    <p class="dim" style="margin-top:10px">🎙️ 온라인 방에서 <b>음성 방송</b>을 켜면 마이크를 잡은 사람의 목소리가 모두의 폰과 방장 화면으로 들려요. 같은 공간에서는 하울링이 날 수 있으니 떨어져서 할 때 써 주세요.</p>
+    <p class="dim" style="margin-top:6px">※ 정답 판정은 진행자(또는 다 같이 합의)로 해요. 애매하면 다수결!</p>
+    <div class="center" style="margin-top:14px"><button class="btn b-pink" onclick="document.getElementById('rulesOv').classList.remove('on')">알겠어요!</button></div>
+  </div>
+</div>
+
+<!-- WIN -->
+<div class="ov" id="winOv">
+  <div class="box nbox-yellow center">
+    <div style="font-size:70px">🏆</div>
+    <div class="win-name neon-yellow" id="winName"></div>
+    <div style="font-size:26px;margin-top:6px">무대의 주인공!</div>
+    <div class="rank" id="winRank"></div>
+    <div class="row" style="justify-content:center;margin-top:16px" id="winBtns"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div id="voiceInd"></div>
+<audio id="rtcAudio" autoplay playsinline></audio>
+
+<script>
+/* =========================================================
+   Firebase 설정 — splendor-dcfc6 프로젝트
+   ========================================================= */
+// 방 데이터가 저장될 위치 (Firebase 규칙에 이 이름이 열려 있어야 해요)
+const ROOM_ROOT = "grabmicRooms";
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDtbHhWk7rbhSoZaXWU1CahB2fVRHszMt4",
+  authDomain: "splendor-dcfc6.firebaseapp.com",
+  databaseURL: "https://splendor-dcfc6-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "splendor-dcfc6",
+  storageBucket: "splendor-dcfc6.firebasestorage.app",
+  messagingSenderId: "969033758923",
+  appId: "1:969033758923:web:d69cb38a5f02a0204a434e"
+};
+
+/* ===================== 단어 은행 =====================
+   [단어, 칸수]  — 자주 나오는 단어일수록 1칸, 드물수록 3칸 */
+const W1 = "사랑,너,나,우리,하늘,별,밤,꿈,눈물,바람,비,마음,오늘,안녕,함께,다시,하나,세상,노래,시간,기억,행복,웃음,봄,친구,빛,처음,영원히,사랑해,좋아해,보고 싶어,미안해,고마워,달,손,어제,내일,혼자,지금,눈,이별,그대,얼굴,이름,소원,새로운,떠나,멀리";
+const W2 = "바다,꽃,여름,겨울,가을,태양,구름,무지개,새벽,아침,거리,길,집,엄마,추억,편지,비밀,거짓말,심장,날개,우주,기적,천사,소녀,소년,여행,파도,노을,하얀,빨간,파란,춤,파티,주인공,공주,약속,첫눈,눈빛,목소리,그림자,불꽃,반짝반짝,두근두근,달려,날아,기다려,미소,향기,선물,하루,별빛,햇살,첫사랑,고백,운명,청춘,그리움,낭만,이별 노래,밤하늘,바닷가,유리,멜로디,꽃잎,봄날,문,창문,전화,빗물,하늘색,노란,눈사람,크리스마스,생일";
+const W3 = "자전거,기차,버스,비행기,고양이,강아지,토끼,곰,호랑이,나비,커피,우산,사과,딸기,바나나,초콜릿,사탕,아이스크림,피아노,기타,카메라,신발,모자,거울,시계,풍선,로켓,지구,해바라기,장미,산타,할머니,아빠,월요일,일요일,수박,케이크,라면,우유,택시,지하철,안경,연필,공룡,펭귄,오리,개구리,돌고래,무지개빛,별똥별,동물원,엘리베이터,서울,부산,제주도,네온사인,라디오,영화,드라마,주말,금요일,월급";
+const WE = "love:1,baby:1,girl:1,dance:1,boy:2,party:2,heart:2,dream:2,star:2,night:2,sky:2,summer:2,fire:2,hello:2,sorry:2,forever:2,happy:2,hot:2,sweet:2,beautiful:2,tonight:2,music:2,shine:2,light:2,good:2,money:3,candy:3,magic:3,crazy:3,cool:3,rain:3,sun:3,moon:3,run:3,fly:3,bye:3,yes:3,friend:3,world:3,time:2,young:3,red:3";
+
+const SPECIALS = {
+  solo:{ic:"🎙️",nm:"솔로 아티스트",cond:"솔로 가수의 노래만 정답!"},
+  group:{ic:"👥",nm:"그룹 아티스트",cond:"그룹 가수의 노래만 정답!"},
+  dance:{ic:"💃",nm:"신나는 댄스곡",cond:"안무가 있는 댄스곡만 정답!"}
+};
+const COLORS = ["#ff3d9a","#2ef2c9","#ffd23f","#9b5cff","#ff8a3d","#4da3ff","#7dff5a","#ff5a5a","#f2a7ff","#b8f2e6"];
+
+/* ===================== 유틸 ===================== */
+const $ = s => document.querySelector(s);
+const store = {
+  get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+};
+const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const shuffle = a => {for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));$('#'+id).classList.add('on');window.scrollTo(0,0)}
+function toast(t){const el=$('#toast');el.textContent=t;el.style.display='block';clearTimeout(toast._t);toast._t=setTimeout(()=>el.style.display='none',2200)}
+function openRules(){$('#rulesOv').classList.add('on')}
+function toggleFS(){try{if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen()}catch(e){}}
+function toggleAdj(){$('#board').classList.toggle('hide-adj')}
+
+/* ===================== 효과음 ===================== */
+let AC=null;
+function tone(f,d,type="square",v=.08,delay=0){
+  try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    const o=AC.createOscillator(),g=AC.createGain(),t=AC.currentTime+delay;
+    o.type=type;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);
+    o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d)}catch(e){}
+}
+const sfx={
+  flip(){tone(660,.08,"triangle",.1);tone(990,.12,"triangle",.1,.07)},
+  grab(){tone(300,.06,"sawtooth",.08);tone(600,.08,"sawtooth",.08,.05);tone(1200,.15,"square",.06,.1)},
+  ok(){[523,659,784,1047].forEach((f,i)=>tone(f,.18,"triangle",.12,i*.09))},
+  no(){tone(180,.35,"sawtooth",.12);tone(140,.4,"sawtooth",.1,.12)},
+  win(){[523,659,784,1047,784,1047,1319].forEach((f,i)=>tone(f,.25,"triangle",.12,i*.13))},
+  tick(){tone(1000,.04,"square",.04)}
+};
+
+/* ===================== 설정 ===================== */
+let S = Object.assign({len:12,timer:10,special:true,basic:true,eng:false,easy:false,custom:"",onlyCustom:false,voice:false}, store.get('gtm_settings',{}));
+function bindSettings(){
+  $('#sLen').value=S.len;$('#sTimer').value=S.timer;$('#sSpecial').checked=S.special;
+  $('#sBasic').checked=S.basic;$('#sEng').checked=S.eng;$('#sEasy').checked=S.easy;
+  $('#sCustom').value=S.custom;$('#sOnlyCustom').checked=S.onlyCustom;$('#sVoice').checked=!!S.voice;
+  const upd=()=>{S={len:+$('#sLen').value,timer:+$('#sTimer').value,special:$('#sSpecial').checked,basic:$('#sBasic').checked,
+    eng:$('#sEng').checked,easy:$('#sEasy').checked,custom:$('#sCustom').value,onlyCustom:$('#sOnlyCustom').checked,voice:$('#sVoice').checked};
+    if(MODE==='host'&&ROOM&&db){roomRef('meta/voice').set(S.voice);if(G){G.voice=S.voice;commit()}}
+    store.set('gtm_settings',S);$('#deckCount').textContent=`🃏 사용할 단어 카드: ${wordPool().length}장`};
+  ['#sLen','#sTimer','#sSpecial','#sBasic','#sEng','#sEasy','#sOnlyCustom','#sVoice'].forEach(id=>$(id).onchange=upd);
+  $('#sCustom').oninput=upd;upd();
+}
+function wordPool(){
+  const pool=[];
+  const custom=S.custom.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{const m=l.split(/[,，]/);let s=parseInt(m[1]);if(!(s>=1&&s<=3))s=2;return {w:m[0].trim(),s}}).filter(x=>x.w);
+  if(!S.onlyCustom){
+    if(S.basic){W1.split(',').forEach(w=>pool.push({w,s:1}));if(!S.easy){W2.split(',').forEach(w=>pool.push({w,s:2}));W3.split(',').forEach(w=>pool.push({w,s:3}))}}
+    if(S.eng){WE.split(',').forEach(x=>{const[w,s]=x.split(':');if(!S.easy||+s===1||+s===2)pool.push({w,s:+s})})}
+  }
+  custom.forEach(c=>pool.push(c));
+  const seen=new Set();return pool.filter(p=>{if(seen.has(p.w))return false;seen.add(p.w);return true});
+}
+function moveSettings(slot){$(slot).appendChild($('#settingsPanel'));bindSettings()}
+
+/* ===================== 게임 상태 ===================== */
+let MODE=null;   // 'local' | 'host'
+let G=null, DECK=[];
+function specialAt(i,len,on){
+  if(!on||i<=0||i>=len||i%3!==0)return null;
+  return ["solo","group","dance"][((i/3)-1)%3];
+}
+function newGame(players){
+  DECK=shuffle(wordPool().slice());
+  G={players:players.map((p,i)=>({id:p.id,name:p.name,color:p.color||COLORS[i%10],pos:0,mutedThrough:-1})),
+     round:1,phase:'ready',card:null,holder:null,singAt:0,winner:null,
+     len:S.len,special:S.special,timer:S.timer,voice:!!S.voice,msg:"카드를 뒤집어 게임을 시작하세요!",lastOk:null};
+}
+const P=id=>G.players.find(p=>p.id===id);
+const isMuted=p=>p&&p.mutedThrough>=G.round;
+function drawCard(){if(!DECK.length)DECK=shuffle(wordPool().slice());return DECK.pop()||{w:"사랑",s:1}}
+
+function actFlip(){
+  if(G.phase!=='ready')return;
+  G.card=drawCard();G.phase='grab';G.holder=null;G.msg="";G.lastOk=null;
+  sfx.flip();openGrab();commit(true);
+}
+function actGrab(id){
+  const p=P(id);if(G.phase!=='grab'||!p||isMuted(p))return false;
+  G.holder=id;G.phase='sing';G.singAt=now();sfx.grab();commit();return true;
+}
+// 버저를 누른 손가락이 바로 아래 나타난 정답/오답 버튼까지 눌러 버리는 것 막기
+let guardUntil=0;
+function buzz(e,id){e.preventDefault();if(actGrab(id))guardUntil=Date.now()+800}
+function actJudge(ok){
+  if(G.phase!=='sing'||Date.now()<guardUntil)return;const p=P(G.holder);if(!p)return;
+  if(ok){
+    p.pos=Math.min(G.len,p.pos+G.card.s);sfx.ok();
+    G.lastOk={name:p.name,s:G.card.s,w:G.card.w};
+    if(p.pos>=G.len){G.phase='over';G.winner=p.id;G.holder=null;lockGrab();commit();sfx.win();return}
+    G.msg=`✅ ${p.name} 정답! ${G.card.s}칸 앞으로!`;
+    G.round++;G.phase='ready';G.holder=null;lockGrab();
+  }else{
+    p.mutedThrough=G.round+1;sfx.no();
+    G.msg=`❌ ${p.name} 🤐 음소거! 다시 마이크 쟁탈전!`;
+    G.holder=null;G.phase='grab';openGrab();
+  }
+  commit();
+}
+function actPass(){
+  if(Date.now()<guardUntil)return;
+  if(G.phase!=='grab'&&G.phase!=='sing')return;
+  G.msg=`⏭️ 아무도 못 불렀어요. ("${G.card.w}")`;G.round++;G.phase='ready';G.holder=null;lockGrab();commit();
+}
+function actAdj(id,d){const p=P(id);if(!p)return;p.pos=Math.max(0,Math.min(G.len,p.pos+d));
+  if(p.pos>=G.len&&G.phase!=='over'){G.phase='over';G.winner=p.id;lockGrab();sfx.win()}commit()}
+function actUnmute(id){const p=P(id);if(p){p.mutedThrough=-1;commit()}}
+function actRestart(){G.players.forEach(p=>{p.pos=0;p.mutedThrough=-1});Object.assign(G,{round:1,phase:'ready',card:null,holder:null,winner:null,msg:"새 게임! 카드를 뒤집으세요.",lastOk:null});
+  DECK=shuffle(wordPool().slice());G.len=S.len;G.special=S.special;G.timer=S.timer;G.voice=!!S.voice;$('#winOv').classList.remove('on');lockGrab();commit()}
+
+function commit(flip){renderGame(flip);if(MODE==='host'){pushState();rtcSync(G,'__host')}}
+
+/* ===================== 렌더 (한 화면/호스트) ===================== */
+function renderGame(flip){
+  $('#gRound').textContent=`🎵 ${G.round}라운드`;
+  // 카드
+  const wc=$('#wordcard');
+  if(G.card&&(G.phase==='grab'||G.phase==='sing')){
+    wc.className='wordcard'+(flip?' flip':'');
+    wc.innerHTML=`<div class="steps">${'<span></span>'.repeat(G.card.s)}</div><div class="w">${esc(G.card.w)}</div><div class="stepTxt">맞히면 ${G.card.s}칸 ▶</div>`;
+  }else{
+    wc.className='wordcard back';
+    wc.innerHTML=`<div class="backlogo">🎤<br>GRAB<br>THE MIC</div>`;
+  }
+  // 상태
+  const st=$('#gStatus');let h="";
+  if(G.phase==='ready'){
+    h=`<div class="big neon-pink">다음 카드 준비!</div><div class="msg">${esc(G.msg||"")}</div>`;
+  }else if(G.phase==='grab'){
+    const free=G.players.filter(p=>!isMuted(p)).length;
+    h=`<div><span class="mic wobble">🎤</span></div><div class="big neon-mint">마이크를 잡아라!</div><div class="msg">${esc(G.msg||"")}${free===0?'<br>모두 음소거예요 — 카드를 넘기세요.':''}</div>`;
+  }else if(G.phase==='sing'){
+    const p=P(G.holder);const sp=specialAt(p.pos,G.len,G.special);
+    h=`<div class="big" style="color:${p.color};text-shadow:0 0 14px ${p.color}">🎤 ${esc(p.name)}</div>
+       <div class="msg">"${esc(G.card.w)}"이(가) 들어간 노래를 불러 주세요!</div>
+       ${sp?`<div><span class="cond">${SPECIALS[sp].ic} ${SPECIALS[sp].cond}</span></div>`:''}
+       ${G.timer?`<div class="timer" id="timerTxt">${G.timer}</div>`:''}`;
+  }else if(G.phase==='over'){
+    h=`<div class="big neon-yellow">🏆 ${esc(P(G.winner).name)} 승리!</div>`;
+  }
+  st.innerHTML=h;
+  // 컨트롤
+  const c=$('#gControls');
+  if(G.phase==='ready'){
+    c.innerHTML=`<button class="btn b-pink" style="width:100%;font-size:30px;padding:22px" onclick="actFlip()">🃏 카드 뒤집기</button>`;
+  }else if(G.phase==='grab'){
+    if(MODE==='local'){
+      c.innerHTML=`<div class="dim center" style="margin-bottom:8px;font-size:18px">🎤 떠오르면 <b>내 이름 버튼</b>을 가장 먼저 탭! (키보드 1~0도 돼요)</div>
+        <button class="btn b-ghost" style="width:100%" onclick="actPass()">⏭️ 아무도 모르면 카드 넘기기</button>`;
+    }else{
+      c.innerHTML=`<div class="dim" style="margin-bottom:6px">각자 폰에서 먼저 누른 사람이 잡아요. 여기서 직접 고를 수도 있어요.</div>
+      <div class="grabgrid">${G.players.map(p=>`<button class="grabbtn" style="color:${p.color}" ${isMuted(p)?'disabled':''} onclick="actGrab('${p.id}')"><span>${isMuted(p)?'🤐':'🎤'} ${esc(p.name)}</span></button>`).join('')}</div>
+      <button class="btn b-ghost" style="width:100%;margin-top:10px" onclick="actPass()">⏭️ 아무도 모르면 카드 넘기기</button>`;
+    }
+  }else if(G.phase==='sing'){
+    c.innerHTML=`<div class="ctrl"><button class="btn b-mint" onclick="actJudge(true)">⭕ 정답!</button><button class="btn b-red" onclick="actJudge(false)">❌ 오답</button></div>
+      <button class="btn b-ghost" style="width:100%;margin-top:10px" onclick="actPass()">⏭️ 카드 넘기기</button>`;
+  }else c.innerHTML=`<button class="btn b-yellow" style="width:100%" onclick="showWin()">🏆 결과 보기</button>`;
+  // 버저 (한 화면 모드)
+  const bz=$('#buzzers');placeBuzzers();
+  if(MODE==='local'&&G.phase==='grab'){
+    bz.classList.add('on');
+    bz.innerHTML=G.players.map(p=>`<button class="buzz" style="color:${p.color}" ${isMuted(p)?'disabled':''} onpointerdown="buzz(event,'${p.id}')" ontouchstart="buzz(event,'${p.id}')"><div class="bic">${isMuted(p)?'🤐':'🎤'}</div><span>${esc(p.name)}</span><small>${isMuted(p)?'음소거 중':'탭해서 마이크 잡기'}</small></button>`).join('');
+  }else{bz.classList.remove('on');bz.innerHTML=''}
+  // 보드
+  let b="";
+  G.players.forEach(p=>{
+    let cells="";
+    for(let i=0;i<=G.len;i++){
+      const sp=specialAt(i,G.len,G.special);
+      const cls=i===0?'start':i===G.len?'goal':sp?'sp-'+sp:'';
+      const lab=i===0?'출발':i===G.len?'🏆':sp?SPECIALS[sp].ic:'';
+      const tok=p.pos===i?`<div class="tok" style="background:${p.color};color:${p.color}"></div>`:'';
+      cells+=`<div class="cell ${cls}">${tok?'':lab}${tok}</div>`;
+    }
+    b+=`<div class="lane ${G.holder===p.id?'holder':''}">
+      <div class="nm"><span class="dot" style="background:${p.color};color:${p.color}"></span>${esc(p.name)}${isMuted(p)?`<span class="mute" title="눌러서 해제" style="cursor:pointer" onclick="actUnmute('${p.id}')">🤐</span>`:''}</div>
+      <div class="cells">${cells}</div>
+      <div class="adj"><button onclick="actAdj('${p.id}',-1)">−</button><button onclick="actAdj('${p.id}',1)">+</button></div></div>`;
+  });
+  $('#board').innerHTML=b;
+  $('#legend').innerHTML=G.special?Object.values(SPECIALS).map(s=>`<span>${s.ic} ${s.nm}</span>`).join('')+`<span>🤐 음소거 (다음 라운드 끝까지)</span>`:`<span>🤐 음소거 (다음 라운드 끝까지)</span>`;
+  if(G.phase==='over'&&!renderGame._won){renderGame._won=true;setTimeout(showWin,700)}
+  if(G.phase!=='over')renderGame._won=false;
+}
+// 좁은 화면(폰·세로 태블릿)에서는 버저를 카드 바로 아래로, 넓은 화면에서는 아래쪽 전체 폭으로
+function placeBuzzers(){
+  const bz=$('#buzzers'),narrow=window.innerWidth<=900;
+  const target=narrow?$('#game .stage'):$('#game');
+  if(bz.parentElement!==target){narrow?$('#gControls').before(bz):target.appendChild(bz)}
+  bz.classList.toggle('narrow',narrow);
+}
+window.addEventListener('resize',()=>{if(G&&MODE==='local')placeBuzzers()});
+function showWin(){
+  const w=P(G.winner);if(!w)return;
+  $('#winName').textContent=w.name;$('#winName').style.color=w.color;
+  const r=[...G.players].sort((a,b)=>b.pos-a.pos);
+  $('#winRank').innerHTML=r.map((p,i)=>`${i+1}위 ${esc(p.name)} — ${p.pos}칸`).join('<br>');
+  $('#winBtns').innerHTML=`<button class="btn b-pink" onclick="actRestart()">🔁 같은 사람과 다시 하기</button><button class="btn b-ghost" onclick="$('#winOv').classList.remove('on')">보드 보기</button>`;
+  $('#winOv').classList.add('on');confetti();
+}
+function confetti(){for(let i=0;i<80;i++){const d=document.createElement('div');d.className='confetti';d.style.left=Math.random()*100+'vw';
+  d.style.background=COLORS[i%10];d.style.animationDuration=(2+Math.random()*2)+'s';d.style.animationDelay=Math.random()*.8+'s';document.body.appendChild(d);setTimeout(()=>d.remove(),5000)}}
+
+/* 타이머 */
+setInterval(()=>{
+  if(!G||G.phase!=='sing'||!G.timer)return;
+  const left=Math.ceil(G.timer-(now()-G.singAt)/1000);
+  ['#timerTxt','#cTimer'].forEach(id=>{const el=$(id);if(!el)return;
+    if(left>0){el.textContent=left;el.classList.remove('out')}else{el.textContent='⏰ 시간 초과!';el.classList.add('out')}});
+},250);
+
+/* ===================== 로컬 모드 ===================== */
+function goLocalSetup(){
+  const sel=$('#pCount');sel.innerHTML='';for(let i=2;i<=10;i++)sel.innerHTML+=`<option value="${i}">${i}명</option>`;
+  const names=store.get('gtm_names',["플레이어1","플레이어2","플레이어3","플레이어4"]);
+  sel.value=Math.max(2,Math.min(10,names.length));
+  const draw=()=>{const n=+sel.value;const cur=[...document.querySelectorAll('#pInputs input')].map(i=>i.value);
+    $('#pInputs').innerHTML=Array.from({length:n},(_,i)=>`<div class="pinput"><span class="dot" style="background:${COLORS[i]};color:${COLORS[i]}"></span><input type="text" maxlength="8" value="${esc(cur[i]??names[i]??'플레이어'+(i+1))}"></div>`).join('')};
+  sel.onchange=draw;$('#pInputs').innerHTML='';draw();
+  moveSettings('#localSettingsSlot');show('localSetup');
+}
+function startLocal(){
+  if(!wordPool().length){toast('단어가 하나도 없어요! 설정을 확인해 주세요.');return}
+  const names=[...document.querySelectorAll('#pInputs input')].map((i,k)=>i.value.trim()||`${k+1}번`);
+  store.set('gtm_names',names);MODE='local';
+  newGame(names.map((n,i)=>({id:'p'+i,name:n,color:COLORS[i]})));
+  $('#gCodeTag').textContent='';show('game');renderGame();
+}
+function quitGame(){
+  if(!confirm('게임을 끝내고 처음 화면으로 갈까요?'))return;
+  if(MODE==='host')leaveHost(true);MODE=null;G=null;show('home');
+}
+
+/* ===================== Firebase ===================== */
+let db=null,offset=0;
+function now(){return Date.now()+offset}
+function fb(){
+  if(db)return db;
+  try{
+    if(!window.firebase)throw 0;
+    const cfg={...FIREBASE_CONFIG};if(!cfg.apiKey)delete cfg.apiKey;
+    firebase.initializeApp(cfg);db=firebase.database();
+    db.ref('.info/serverTimeOffset').on('value',s=>offset=s.val()||0);
+    return db;
+  }catch(e){toast('온라인 연결에 실패했어요. 인터넷을 확인해 주세요.');return null}
+}
+
+/* ---------- 호스트 ---------- */
+let ROOM=null,lobby=[],hostRefs=[];
+function roomRef(p){return db.ref(`${ROOM_ROOT}/${ROOM}${p?'/'+p:''}`)}
+async function goHost(){
+  if(!fb())return;
+  MODE='host';lobby=[];G=null;
+  // 4자리 코드 만들기
+  for(let t=0;t<10;t++){const c=String(Math.floor(1000+Math.random()*9000));const s=await db.ref(`${ROOM_ROOT}/${c}/meta`).get();
+    if(!s.exists()||(Date.now()-(s.val().created||0))>6*3600e3){ROOM=c;break}}
+  if(!ROOM){toast('방을 만들지 못했어요. 다시 시도해 주세요.');return}
+  await roomRef().set({meta:{app:'grabmic',created:firebase.database.ServerValue.TIMESTAMP,status:'lobby',voice:!!S.voice},holder:'__lock'});
+  const url=location.origin+location.pathname+'?room='+ROOM;
+  $('#hostCode').textContent=ROOM;$('#hostLink').textContent=url;
+  $('#hostQR').src='https://api.qrserver.com/v1/create-qr-code/?size=170x170&data='+encodeURIComponent(url);
+  $('#hostQR').onerror=()=>$('#hostQR').style.display='none';
+  const jr=roomRef('joins');
+  const onJ=s=>{const v=s.val();if(!v)return;addJoin(s.key,v.name)};
+  jr.on('child_added',onJ);jr.on('child_changed',onJ);
+  jr.on('child_removed',s=>{lobby=lobby.filter(p=>p.id!==s.key);renderLobby()});
+  const hr=roomRef('holder');hr.on('value',s=>onHolder(s.val()));
+  hostRefs=[jr,hr];
+  renderLobby();moveSettings('#hostSettingsSlot');show('hostLobby');
+}
+function addJoin(id,name){
+  let p=lobby.find(x=>x.id===id);
+  if(p)p.name=name;else{p={id,name,color:COLORS[lobby.length%10]};lobby.push(p)}
+  if(G){const gp=P(id);if(gp)gp.name=name;else G.players.push({id,name,color:COLORS[G.players.length%10],pos:0,mutedThrough:-1});commit()}
+  renderLobby();
+}
+function renderLobby(){
+  $('#joinCount').textContent=`(${lobby.length}명)`;
+  $('#joinedList').innerHTML=lobby.length?lobby.map(p=>`<span class="chip"><span class="dot" style="background:${p.color};color:${p.color};width:14px;height:14px"></span>${esc(p.name)}<button class="x" onclick="kick('${p.id}')">✕</button></span>`).join(''):'<span class="dim">참가자를 기다리는 중… 폰으로 QR을 찍거나 방 코드를 입력하세요</span>';
+  $('#hostStartBtn').disabled=lobby.length<2;
+}
+function kick(id){roomRef('joins/'+id).remove()}
+function startHost(){
+  if(!wordPool().length){toast('단어가 하나도 없어요! 설정을 확인해 주세요.');return}
+  newGame(lobby);roomRef('meta/status').set('playing');
+  $('#gCodeTag').textContent='방 '+ROOM;show('game');lockGrab();commit();
+}
+function pushState(){if(!ROOM||!db)return;const s=JSON.parse(JSON.stringify(G));roomRef('state').set(s)}
+function openGrab(){if(MODE==='host'&&db)roomRef('holder').set(null)}
+function lockGrab(){if(MODE==='host'&&db)roomRef('holder').set(G&&G.holder?G.holder:'__lock')}
+function onHolder(v){
+  if(!G||MODE!=='host')return;
+  if(v&&v!=='__lock'&&G.phase==='grab'){
+    const p=P(v);
+    if(!p||isMuted(p)){roomRef('holder').set(null);return}
+    actGrab(v);
+  }else if(G.phase==='sing'&&v!==G.holder){roomRef('holder').set(G.holder)}
+}
+// 호스트가 직접 고른 경우 holder도 맞춰 주기
+const _actGrab=actGrab;
+actGrab=function(id){const ok=_actGrab(id);if(ok&&MODE==='host')roomRef('holder').set(id);return ok};
+function leaveHost(silent){
+  rtcTeardown();hostRefs.forEach(r=>r.off());hostRefs=[];
+  if(ROOM&&db)roomRef().remove();ROOM=null;MODE=null;if(!silent)show('home');
+}
+
+/* ---------- 참가자(클라이언트) ---------- */
+let ME=null,CROOM=null,cRefs=[],cState=null,cJoins={},cMeta={};
+function goJoin(){
+  const q=new URLSearchParams(location.search).get('room');
+  if(q)$('#jCode').value=q;
+  $('#jName').value=store.get('gtm_myname','');show('join');
+}
+async function joinRoom(){
+  const code=$('#jCode').value.trim(),name=$('#jName').value.trim();
+  $('#jErr').textContent='';
+  if(!/^\d{4}$/.test(code)){$('#jErr').textContent='방 코드 4자리를 입력해 주세요.';return}
+  if(!name){$('#jErr').textContent='이름을 입력해 주세요.';return}
+  if(!fb())return;
+  const m=await db.ref(`${ROOM_ROOT}/${code}/meta`).get();
+  if(!m.exists()||m.val().app!=='grabmic'){$('#jErr').textContent='그런 방이 없어요. 코드를 확인해 주세요.';return}
+  store.set('gtm_myname',name);
+  let ids=store.get('gtm_ids',{});ME=ids[code]||('s'+Math.random().toString(36).slice(2,9));ids[code]=ME;store.set('gtm_ids',ids);
+  CROOM=code;
+  await db.ref(`${ROOM_ROOT}/${code}/joins/${ME}`).set({name});
+  const sr=db.ref(`${ROOM_ROOT}/${code}/state`),jr=db.ref(`${ROOM_ROOT}/${code}/joins`),mr=db.ref(`${ROOM_ROOT}/${code}/meta`);
+  sr.on('value',s=>{cState=s.val();renderClient()});
+  jr.on('value',s=>{cJoins=s.val()||{};if(CROOM&&!cJoins[ME]){leaveClient('방에서 나가게 되었어요.');return}renderClient()});
+  mr.on('value',s=>{if(CROOM&&!s.exists()){leaveClient('방장이 방을 닫았어요.');return}cMeta=s.val()||{};renderClient()});
+  cRefs=[sr,jr,mr];
+  $('#cMe').textContent=`🙋 ${name} · 방 ${code}`;show('client');renderClient();
+}
+function leaveClient(msg){rtcTeardown();releaseMic();cRefs.forEach(r=>r.off());cRefs=[];CROOM=null;cState=null;show('home');if(msg)toast(msg)}
+let lastClientPhase=null,lastHolder=null;
+function renderClient(){
+  _renderClient();
+  const on=!!((cState&&cState.voice)||cMeta.voice);
+  const vb=$('#cVoiceBar');
+  vb.style.display=on&&!voicePrepared?'block':'none';
+  if(CROOM)rtcSync(cState,ME);
+}
+function _renderClient(){
+  const B=$('#cBody');const s=cState;
+  if(!s||!s.players){
+    const names=Object.values(cJoins).map(j=>esc(j.name));
+    B.innerHTML=`<div class="neon-title neon-pink" style="font-size:44px;margin:30px 0 10px">GRAB THE MIC</div>
+      <div class="cl-state">방장이 게임을 시작하기를 기다리는 중… ⏳</div>
+      <div class="joined" style="justify-content:center;margin-top:20px">${names.map(n=>`<span class="chip">${n}</span>`).join('')}</div>
+      <button class="btn b-ghost" style="margin-top:30px" onclick="openRules()">📖 규칙 보기</button>`;
+    $('#cPos').textContent='';return;
+  }
+  G=s; // 타이머·판정용
+  const me=s.players.find(p=>p.id===ME);
+  if(!me){B.innerHTML='<div class="cl-state" style="margin-top:40px">곧 참여할 수 있어요…</div>';return}
+  const muted=me.mutedThrough>=s.round;
+  const sp=specialAt(me.pos,s.len,s.special);
+  $('#cPos').textContent=`📍 ${me.pos}/${s.len}칸`;
+  let h=`<div class="dim" style="margin-top:6px">${s.round}라운드</div>`;
+  if(s.phase==='ready'){
+    h+=`<div class="cl-word neon-pink">🃏</div><div class="cl-state">다음 카드를 기다려요…</div><div class="dim" style="margin-top:8px;font-size:18px">${esc(s.msg||'')}</div>`;
+  }else if(s.phase==='grab'){
+    h+=`<div class="cl-word neon-mint">${esc(s.card.w)}</div><div class="dim">맞히면 ${'●'.repeat(s.card.s)} ${s.card.s}칸</div>
+      ${sp?`<div><span class="cond">${SPECIALS[sp].ic} ${SPECIALS[sp].cond}</span></div>`:''}
+      <button class="bigmic" id="micBtn" ${muted?'disabled':''} onclick="clientGrab()">${muted?'🤐':'🎤'}</button>
+      <div class="cl-state">${muted?'음소거 중이에요. 다음 라운드가 끝날 때까지 쉿!':'떠오르면 마이크를 눌러요!'}</div>
+      ${s.msg?`<div class="dim" style="margin-top:6px">${esc(s.msg)}</div>`:''}`;
+  }else if(s.phase==='sing'){
+    const hp=s.players.find(p=>p.id===s.holder)||{name:'?'};
+    const mine=s.holder===ME;
+    h+=`<div class="cl-word neon-mint">${esc(s.card.w)}</div>
+      <button class="bigmic ${mine?'mine':''}" disabled>${mine?'🎤':'🎶'}</button>
+      <div class="cl-state" style="font-size:28px">${mine?'🎉 내가 잡았어요! 노래하세요!':`${esc(hp.name)} 이(가) 노래하는 중…`}</div>
+      ${mine&&sp?`<div><span class="cond">${SPECIALS[sp].ic} ${SPECIALS[sp].cond}</span></div>`:''}
+      ${mine&&s.timer?`<div class="timer" id="cTimer">${s.timer}</div>`:''}`;
+    if(mine&&lastHolder!==ME){try{navigator.vibrate&&navigator.vibrate(200)}catch(e){}}
+  }else if(s.phase==='over'){
+    const w=s.players.find(p=>p.id===s.winner)||{name:'?'};
+    h+=`<div style="font-size:80px;margin-top:20px">🏆</div><div class="cl-word neon-yellow">${esc(w.name)}</div><div class="cl-state">${s.winner===ME?'축하해요! 무대의 주인공!':'승리!'}</div>`;
+  }
+  B.innerHTML=h;lastClientPhase=s.phase;lastHolder=s.holder;
+}
+function clientGrab(){
+  if(!CROOM||!cState||cState.phase!=='grab')return;
+  const me=cState.players.find(p=>p.id===ME);if(!me||me.mutedThrough>=cState.round)return;
+  db.ref(`${ROOM_ROOT}/${CROOM}/holder`).transaction(cur=>cur===null?ME:undefined,(err,committed)=>{
+    if(committed){sfx.grab();try{navigator.vibrate&&navigator.vibrate(150)}catch(e){}}
+    else toast('앗, 한 발 늦었어요!');
+  },false);
+}
+
+/* ===================== 음성 방송 (WebRTC) =====================
+   마이크를 잡은 사람 → 나머지 모두(방장 화면 포함)로 한 방향 방송.
+   연결 신호는 Firebase rooms/코드/rtc 아래로 주고받습니다.
+   학교망·일부 LTE처럼 막힌 망에서 연결이 안 되면 TURN_SERVERS에 TURN 서버 정보를 넣으세요.
+   예) {urls:"turn:서버주소:3478", username:"아이디", credential:"비밀번호"} */
+const TURN_SERVERS = [];
+const ICE=[{urls:["stun:stun.l.google.com:19302","stun:stun1.l.google.com:19302"]},...TURN_SERVERS];
+let rtc={sid:null,pcs:{},refs:[]},micStream=null,voicePrepared=false;
+function setVoiceInd(html){const el=$('#voiceInd');el.innerHTML=html||'';el.classList.toggle('on',!!html)}
+async function getMic(){
+  if(micStream&&micStream.getTracks().some(t=>t.readyState==='live'))return micStream;
+  micStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+  micStream.getTracks().forEach(t=>t.enabled=false);
+  return micStream;
+}
+function releaseMic(){if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null}voicePrepared=false}
+function unlockAudio(){
+  const a=$('#rtcAudio');try{a.muted=false;const p=a.play();if(p)p.catch(()=>{})}catch(e){}
+  try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();AC.resume()}catch(e){}
+  if(a.srcObject&&rtc.sid)setVoiceInd('🔊 노래 듣는 중');
+}
+async function prepareVoice(){
+  unlockAudio();
+  try{await getMic();voicePrepared=true;toast('🎙️ 준비 완료! 마이크를 잡으면 내 목소리가 방송돼요')}
+  catch(e){voicePrepared=true;toast('마이크를 허용하지 않아서 듣기만 할 수 있어요')}
+  renderClient();
+}
+function rtcBase(){return db.ref(`${ROOM_ROOT}/${MODE==='host'?ROOM:CROOM}/rtc/${rtc.sid}`)}
+function rtcTeardown(){
+  rtc.refs.forEach(r=>{try{r.off()}catch(e){}});rtc.refs=[];
+  Object.values(rtc.pcs).forEach(pc=>{try{pc.close()}catch(e){}});rtc.pcs={};
+  if(micStream)micStream.getTracks().forEach(t=>t.enabled=false);
+  const a=$('#rtcAudio');if(a)a.srcObject=null;
+  rtc.sid=null;setVoiceInd('');
+}
+function rtcSync(st,myId){
+  if(!db||!window.RTCPeerConnection)return;
+  const want=st&&st.voice&&st.phase==='sing'&&st.holder?`${st.round}_${st.holder}_${st.singAt}`:null;
+  if(want===rtc.sid)return;
+  const had=rtc.sid;rtcTeardown();
+  if(MODE==='host'&&had&&ROOM)roomRef('rtc').remove();   // 지난 방송 신호 정리
+  if(!want)return;
+  rtc.sid=want;
+  if(st.holder===myId)rtcBroadcast(st,myId);else rtcListen(st,myId);
+}
+async function rtcBroadcast(st,myId){
+  const sid=rtc.sid;let stream;
+  try{stream=await getMic()}catch(e){toast('마이크 권한을 허용해야 내 노래가 방송돼요');return}
+  if(rtc.sid!==sid)return;
+  stream.getTracks().forEach(t=>t.enabled=true);
+  setVoiceInd('🔴 내 목소리 방송 중');
+  const base=rtcBase();
+  const ids=st.players.map(p=>p.id).filter(id=>id!==myId).concat('__host');
+  for(const lid of ids){
+    const pc=new RTCPeerConnection({iceServers:ICE});rtc.pcs[lid]=pc;
+    stream.getTracks().forEach(t=>pc.addTrack(t,stream));
+    pc.onicecandidate=e=>{if(e.candidate)base.child('ch/'+lid).push(e.candidate.toJSON())};
+    let ready=false;const q=[];
+    const ar=base.child('answers/'+lid);
+    ar.on('value',async s=>{const v=s.val();if(!v||ready||rtc.sid!==sid)return;
+      try{await pc.setRemoteDescription(v);ready=true;q.splice(0).forEach(c=>pc.addIceCandidate(c).catch(()=>{}))}catch(e){}});
+    const cr=base.child('cl/'+lid);
+    cr.on('child_added',s=>{const c=s.val();if(ready)pc.addIceCandidate(c).catch(()=>{});else q.push(c)});
+    rtc.refs.push(ar,cr);
+    const offer=await pc.createOffer();await pc.setLocalDescription(offer);
+    if(rtc.sid!==sid)return;
+    base.child('offers/'+lid).set({type:offer.type,sdp:offer.sdp});
+  }
+}
+function rtcListen(st,myId){
+  const sid=rtc.sid,base=rtcBase();let pc=null;const q=[];
+  const hn=esc((st.players.find(p=>p.id===st.holder)||{}).name||'');
+  setVoiceInd(`🔊 ${hn} 목소리 연결 중…`);
+  const or=base.child('offers/'+myId);
+  or.on('value',async s=>{const v=s.val();if(!v||pc||rtc.sid!==sid)return;
+    pc=new RTCPeerConnection({iceServers:ICE});rtc.pcs.h=pc;
+    pc.ontrack=e=>{const a=$('#rtcAudio');a.srcObject=e.streams[0]||new MediaStream([e.track]);
+      const p=a.play();const ok=()=>{if(rtc.sid===sid)setVoiceInd(`🔊 ${hn} 노래 듣는 중`)};
+      if(p&&p.then)p.then(ok).catch(()=>{if(rtc.sid===sid)setVoiceInd(`🔇 소리가 꺼져 있어요<button onclick="unlockAudio()">탭해서 듣기</button>`)});else ok()};
+    pc.onicecandidate=e=>{if(e.candidate)base.child('cl/'+myId).push(e.candidate.toJSON())};
+    pc.onconnectionstatechange=()=>{if(pc.connectionState==='failed'&&rtc.sid===sid)setVoiceInd('⚠️ 음성 연결 실패 (네트워크 제한)')};
+    try{await pc.setRemoteDescription(v);const ans=await pc.createAnswer();await pc.setLocalDescription(ans);
+      if(rtc.sid!==sid)return;
+      base.child('answers/'+myId).set({type:ans.type,sdp:ans.sdp});
+      q.splice(0).forEach(c=>pc.addIceCandidate(c).catch(()=>{}))}catch(e){}
+  });
+  const cr=base.child('ch/'+myId);
+  cr.on('child_added',s=>{const c=s.val();if(pc&&pc.remoteDescription)pc.addIceCandidate(c).catch(()=>{});else q.push(c)});
+  rtc.refs.push(or,cr);
+}
+// 첫 터치 때 소리 재생 잠금 풀기(아이폰 대비)
+document.addEventListener('pointerdown',()=>{if(!unlockAudio._done){unlockAudio._done=true;unlockAudio()}},{once:true});
+
+/* ===================== 시작 ===================== */
+bindSettings();
+if(new URLSearchParams(location.search).get('room'))goJoin();
+window.addEventListener('keydown',e=>{
+  if(!G||MODE===null||!$('#game').classList.contains('on'))return;
+  if(e.code==='Space'&&G.phase==='ready'){e.preventDefault();actFlip()}
+  else if(G.phase==='sing'&&(e.key==='o'||e.key==='O'))actJudge(true);
+  else if(G.phase==='sing'&&(e.key==='x'||e.key==='X'))actJudge(false);
+  else if(G.phase==='grab'&&/^[0-9]$/.test(e.key)){const i=e.key==='0'?9:+e.key-1;const p=G.players[i];if(p)actGrab(p.id)}
+});
+</script>
+</body>
+</html>

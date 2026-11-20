@@ -163,6 +163,11 @@ textarea{width:100%;min-height:110px;resize:vertical}
 .buzz:disabled{opacity:.3;box-shadow:none}
 #voiceInd{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:65;background:#000c;border:2px solid var(--pink);border-radius:999px;padding:6px 16px;font-size:17px;display:none;box-shadow:0 0 14px #ff3d9a66}
 #voiceInd.on{display:block}
+.lychip{background:#0f0c16;border:2px solid var(--line);border-radius:999px;padding:6px 12px;font-size:17px;color:var(--text)}
+.lychip small{color:var(--dim);font-size:13px;margin-left:4px}
+.lychip.on{border-color:var(--pink);background:#ff3d9a33}
+.lychip.hook{border-color:#2ef2c977}
+.lychip.has{opacity:.45}
 .meter{display:inline-block;width:70px;height:8px;background:#2b2438;border-radius:4px;overflow:hidden;vertical-align:middle;margin-left:6px}
 .meter i{display:block;height:100%;width:0;background:var(--mint);transition:width .05s}
 #voiceInd button{background:var(--mint);color:#14101c;border-radius:999px;padding:4px 12px;font-size:16px;margin-left:6px}
@@ -232,7 +237,7 @@ textarea{width:100%;min-height:110px;resize:vertical}
         <button class="btn b-ghost preset" style="padding:6px 12px;font-size:16px" onclick="applyPreset('kid')">동요</button>
       </div>
       <label class="opt"><input type="checkbox" id="sBasic"> 기본 우리말 단어</label>
-      <label class="opt"><input type="checkbox" id="sPop"> 노래방 인기곡 단어 <span class="dim" style="font-size:15px">(2025~26 노래방 차트 곡)</span></label>
+      <label class="opt"><input type="checkbox" id="sPop"> 노래방 인기곡 단어 <span class="dim" style="font-size:15px">(인기곡 후렴에 나오는 말)</span></label>
       <label class="opt"><input type="checkbox" id="sKid"> 동요 단어 <span class="dim" style="font-size:15px">(음악 교과서·유치원 동요)</span></label>
       <label class="opt"><input type="checkbox" id="sEng"> 영어 가사 단어 (love, baby…)</label>
       <label class="opt">부를 수 있는 노래
@@ -242,14 +247,23 @@ textarea{width:100%;min-height:110px;resize:vertical}
       <label class="opt"><input type="checkbox" id="sVoice"> 음성 방송 <span class="dim" style="font-size:15px">(온라인 방 — 마이크 잡은 사람 목소리만 모두에게)</span></label>
     </div>
   </div>
-  <details style="margin-top:8px">
-    <summary style="cursor:pointer;font-size:18px">최신 노래방 차트 붙여넣기</summary>
-    <p class="dim" style="margin:6px 0;line-height:1.5">TJ미디어 홈페이지 인기차트(tjmedia.com → 인기차트)에서 순위 목록을 드래그해 복사한 뒤 붙여 넣으세요. 곡 제목이 단어 카드가 돼요.
-      직접 쓸 때는 한 줄에 한 곡씩 <b>제목 - 가수</b>(가수는 없어도 돼요).</p>
-    <textarea id="sChart" placeholder="1  83945  Drowning  WOODZ&#10;나는 반딧불 - 황가람&#10;모르시나요"></textarea>
-    <label class="opt"><input type="checkbox" id="sUseChart"> 붙여 넣은 차트 곡 제목 사용 <span class="dim" id="chartCount" style="font-size:15px"></span></label>
+  <details style="margin-top:8px" id="lyDetails">
+    <summary style="cursor:pointer;font-size:18px">노래 가사로 단어 만들기</summary>
+    <p class="dim" style="margin:6px 0;line-height:1.5">멜론·지니 등에서 가사를 복사해 붙여 넣으면 여러 번 반복되는(후렴) 단어를 찾아 줘요. 쓸 단어만 골라 추가하세요.
+      가사는 저장되지 않고, 고른 단어만 '나만의 단어'에 들어가요.</p>
+    <input type="text" id="lyTitle" placeholder="곡 제목 (제목에 든 단어는 자동으로 빼요)" style="width:100%;margin-bottom:6px">
+    <textarea id="lyText" placeholder="여기에 가사 전체를 붙여 넣으세요"></textarea>
+    <div class="row" style="margin-top:6px">
+      <button class="btn b-mint" style="padding:8px 16px;font-size:16px" onclick="lyFind()">단어 찾기</button>
+      <span class="dim" id="lyInfo" style="font-size:15px"></span>
+    </div>
+    <div id="lyChips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
+    <div class="row" id="lyAddRow" style="margin-top:8px;display:none">
+      <button class="btn b-pink" style="padding:8px 16px;font-size:16px" onclick="lyAdd()">고른 단어 추가 (<span id="lySel">0</span>개)</button>
+      <button class="btn b-ghost" style="padding:8px 16px;font-size:16px" onclick="lyClear()">지우고 다음 곡</button>
+    </div>
   </details>
-  <details style="margin-top:8px">
+  <details style="margin-top:8px" id="customDetails">
     <summary style="cursor:pointer;font-size:18px">나만의 단어 추가하기</summary>
     <p class="dim" style="margin:6px 0">한 줄에 하나씩. 쉼표 뒤에 칸 수(1~3)를 적을 수 있어요. 예) <b>떡볶이,3</b></p>
     <textarea id="sCustom" placeholder="떡볶이,3&#10;노래방,2&#10;여행"></textarea>
@@ -456,10 +470,36 @@ const FIREBASE_CONFIG = {
 const W1 = "사랑,너,나,우리,하늘,별,밤,꿈,눈물,바람,비,마음,오늘,안녕,함께,다시,하나,세상,노래,시간,기억,행복,웃음,봄,친구,빛,처음,영원히,사랑해,좋아해,보고 싶어,미안해,고마워,달,손,어제,내일,혼자,지금,눈,이별,그대,얼굴,이름,소원,새로운,떠나,멀리";
 const W2 = "바다,꽃,여름,겨울,가을,태양,구름,무지개,새벽,아침,거리,길,집,엄마,추억,편지,비밀,거짓말,심장,날개,우주,기적,천사,소녀,소년,여행,파도,노을,하얀,빨간,파란,춤,파티,주인공,공주,약속,첫눈,눈빛,목소리,그림자,불꽃,반짝반짝,두근두근,달려,날아,기다려,미소,향기,선물,하루,별빛,햇살,첫사랑,고백,운명,청춘,그리움,낭만,이별 노래,밤하늘,바닷가,유리,멜로디,꽃잎,봄날,문,창문,전화,빗물,하늘색,노란,눈사람,크리스마스,생일";
 const W3 = "자전거,기차,버스,비행기,고양이,강아지,토끼,곰,호랑이,나비,커피,우산,사과,딸기,바나나,초콜릿,사탕,아이스크림,피아노,기타,카메라,신발,모자,거울,시계,풍선,로켓,지구,해바라기,장미,산타,할머니,아빠,월요일,일요일,수박,케이크,라면,우유,택시,지하철,안경,연필,공룡,펭귄,오리,개구리,돌고래,무지개빛,별똥별,동물원,엘리베이터,서울,부산,제주도,네온사인,라디오,영화,드라마,주말,금요일,월급";
-/* 노래방 인기곡 단어 — 2025~2026 TJ 노래방 차트 상위권 곡(연간·월간·HOT100·트로트 차트)과
-   2026 가요 인기곡의 제목·후렴에 나오는 말. 최신 차트는 설정의 '차트 붙여넣기'로 바꿔 쓸 수 있어요. */
-const WPOP = "반딧불:2,모르시나요:2,천상연:3,응급실:2,시작의 아이:3,바보:2,행복하지 말아요:3,사치:3,당신을 위하여:3,시든 꽃:3,슬픈 사랑:2,사랑했잖아:2,크게 울어라:3,하늘땅 별땅:3,잔불:3,노스탈지아:3,하고 싶은 말:2,내가 더 사랑한단 이유로:3,애련:3,좋니:2,질색:3,빵빵:3,도망가:2,천상재회:3,초혼:3,평행선:3,아모르 파티:3,무조건:3";
-const WPOPE = "drowning:2,golden:1,my love:2,pretty girl:2,error:3,sparkle:2,iconic heart:3,soulmate:3,looks can kill:3,neon:2,lemonade:2,it's me:2,boompala:3,choom:3,rude:3,knife:3,crown:2,404:3";
+/* 노래방 인기곡 단어 — 노래방에서 많이 부르는 곡의 유명한 후렴·첫 소절에 나오는 말.
+   곡 제목은 일부러 뺐어요(제목이 나오면 너무 쉬우니까). 단어는 다른 노래에도 나올 수 있어요.
+   (괄호 안은 참고용 원곡이에요 — 화면에는 나오지 않아요) */
+const WPOP = [
+  "벌레:3",        // 나는 반딧불
+  "바보:1",        // 응급실
+  "시골버스:3",    // 빵빵
+  "덜컹덜컹:3",    // 빵빵
+  "빈손:3",        // 아모르 파티
+  "달려갈게:2",    // 무조건
+  "달디단:3",      // 밤양갱
+  "아스라이:3",    // 사건의 지평선
+  "노란색:2",      // 신호등
+  "3초:3",         // 신호등
+  "보고 싶다:1",   // 봄날
+  "창가:2",        // 밤편지
+  "오빠:2",        // 좋은 날
+  "한눈에:2",      // 너의 모든 순간
+  "봄바람:2",      // 벚꽃 엔딩
+  "날개:2",        // 나는 나비
+  "그대여:1",      // 걱정 말아요 그대
+  "소리 질러:2",   // 챔피언
+  "반복:3",        // 다시 만난 세계
+  "두 글자:3",     // Blueming
+  "꽃가루:3",      // 라일락
+  "솔직히:2",      // 좋니
+  "눈물이 난다:2", // 사랑은 늘 도망가
+  "꿈이 있었죠:2"  // 거위의 꿈
+].join(',');
+const WPOPE = "moment:2,shine:2,happy:2,city:2,soul:3,monday:3,like:2,middle:3,cry:2";
 /* 학교 동요 단어 — 초등 음악 교과서·유치원에서 많이 부르는 동요에 나오는 말 */
 const WKID = "토끼:1,산토끼:1,깡충깡충:1,나비:1,학교종:1,땡땡땡:2,반달:2,은하수:2,쪽배:3,계수나무:3,고향:2,복숭아꽃:3,살구꽃:3,진달래:2,엄마:1,아빠:1,섬:3,갈매기:3,자장노래:3,과수원:3,아카시아:3,하얀 꽃:2,개구리:1,개굴개굴:1,둥글게:2,짝짝:2,작은 별:1,반짝반짝:1,퐁당퐁당:2,돌:2,누나:2,냇물:2,시냇물:2,염소:2,파란 하늘:2,텔레비전:2,숲속:2,산새:3,약속:2,다람쥐:2,도토리:2,꽃밭:2,채송화:3,봉숭아:3,봄바람:2,고드름:2,눈사람:2,곰:1,아빠 곰:1,애기 곰:1,송아지:2,얼룩:2,시계:2,똑딱똑딱:2,산타 할아버지:1,루돌프:1,빨간 코:2,구슬비:3,송알송알:3,어린이날:2,오월:2,무궁화:2,태극기:2,할머니:2,고개:2,개나리:2,병아리:1,봄나들이:3,종이배:3,기찻길:2,달님:2,해님:2,별님:2,무지개:2,우산:2,빗방울:2,눈꽃:2,허수아비:3,잠자리:2,코끼리:1,원숭이:1,엉덩이:1,바나나:1,기차:1,올챙이:2,뒷다리:2,앞다리:2,생일:1,축하:1,친구:1,학교:1,선생님:2,유치원:3,꼬마:2,노래:1,춤:2";
 const WE = "love:1,baby:1,girl:1,dance:1,boy:2,party:2,heart:2,dream:2,star:2,night:2,sky:2,summer:2,fire:2,hello:2,sorry:2,forever:2,happy:2,hot:2,sweet:2,beautiful:2,tonight:2,music:2,shine:2,light:2,good:2,money:3,candy:3,magic:3,crazy:3,cool:3,rain:3,sun:3,moon:3,run:3,fly:3,bye:3,yes:3,friend:3,world:3,time:2,young:3,red:3";
@@ -507,46 +547,79 @@ let S = Object.assign({len:12,timer:10,special:true,basic:true,eng:false,easy:fa
 function bindSettings(){
   $('#sLen').value=S.len;$('#sTimer').value=S.timer;$('#sSpecial').checked=S.special;
   $('#sBasic').checked=S.basic;$('#sEng').checked=S.eng;$('#sEasy').checked=S.easy;
-  $('#sCustom').value=S.custom;$('#sOnlyCustom').checked=S.onlyCustom;$('#sVoice').checked=!!S.voice;$('#sPop').checked=!!S.pop;$('#sKid').checked=!!S.kid;$('#sSongs').value=S.songs||'any';$('#sChart').value=S.chart||'';$('#sUseChart').checked=!!S.useChart;
+  $('#sCustom').value=S.custom;$('#sOnlyCustom').checked=S.onlyCustom;$('#sVoice').checked=!!S.voice;$('#sPop').checked=!!S.pop;$('#sKid').checked=!!S.kid;$('#sSongs').value=S.songs||'any';
   const upd=()=>{S={len:+$('#sLen').value,timer:+$('#sTimer').value,special:$('#sSpecial').checked,basic:$('#sBasic').checked,
-    eng:$('#sEng').checked,easy:$('#sEasy').checked,custom:$('#sCustom').value,onlyCustom:$('#sOnlyCustom').checked,voice:$('#sVoice').checked,pop:$('#sPop').checked,kid:$('#sKid').checked,songs:$('#sSongs').value,chart:$('#sChart').value,useChart:$('#sUseChart').checked};
-    $('#chartCount').textContent=S.chart.trim()?`(${parseChart(S.chart).length}곡 인식)`:'';
+    eng:$('#sEng').checked,easy:$('#sEasy').checked,custom:$('#sCustom').value,onlyCustom:$('#sOnlyCustom').checked,voice:$('#sVoice').checked,pop:$('#sPop').checked,kid:$('#sKid').checked,songs:$('#sSongs').value};
     if(MODE==='host'&&ROOM&&db){roomRef('meta/voice').set(S.voice);if(G){G.voice=S.voice;commit()}}
     store.set('gtm_settings',S);$('#deckCount').textContent=`사용할 단어 카드: ${wordPool().length}장`};
-  ['#sLen','#sTimer','#sSpecial','#sBasic','#sEng','#sEasy','#sOnlyCustom','#sVoice','#sPop','#sKid','#sSongs','#sUseChart'].forEach(id=>$(id).onchange=upd);
-  $('#sCustom').oninput=upd;$('#sChart').oninput=()=>{if($('#sChart').value.trim())$('#sUseChart').checked=true;upd()};upd();
+  ['#sLen','#sTimer','#sSpecial','#sBasic','#sEng','#sEasy','#sOnlyCustom','#sVoice','#sPop','#sKid','#sSongs'].forEach(id=>$(id).onchange=upd);
+  $('#sCustom').oninput=upd;upd();
 }
 function applyPreset(k){
   const set=(id,v)=>{const el=$(id);if(el.type==='checkbox')el.checked=v;else el.value=v};
-  if(k==='basic'){set('#sBasic',true);set('#sPop',false);set('#sKid',false);set('#sUseChart',false);set('#sEng',false);set('#sSongs','any')}
-  if(k==='pop'){set('#sBasic',false);set('#sPop',true);set('#sKid',false);set('#sEng',false);set('#sSongs','pop');if($('#sChart').value.trim())set('#sUseChart',true)}
-  if(k==='kid'){set('#sBasic',false);set('#sPop',false);set('#sKid',true);set('#sUseChart',false);set('#sEng',false);set('#sSongs','kid');set('#sSpecial',false);set('#sEasy',false)}
+  if(k==='basic'){set('#sBasic',true);set('#sPop',false);set('#sKid',false);set('#sEng',false);set('#sSongs','any')}
+  if(k==='pop'){set('#sBasic',true);set('#sPop',true);set('#sKid',false);set('#sEng',false);set('#sSongs','pop')}
+  if(k==='kid'){set('#sBasic',false);set('#sPop',false);set('#sKid',true);set('#sEng',false);set('#sSongs','kid');set('#sSpecial',false);set('#sEasy',false)}
   set('#sOnlyCustom',false);$('#sBasic').onchange();
-  toast({basic:'기본 단어로 설정했어요',pop:'노래방 인기곡 단어 + 가요만 정답',kid:'동요 단어 + 동요만 정답'}[k]);
+  toast({basic:'기본 단어로 설정했어요',pop:'기본 단어 + 인기곡 후렴 단어, 가요만 정답',kid:'동요 단어 + 동요만 정답'}[k]);
 }
-// 차트 붙여넣기 → 곡 제목 목록
-function parseChart(txt){
-  const out=[],seen=new Set();
-  const clean=t=>{t=t.replace(/[（［]/g,'(').replace(/[）］\]]/g,')').replace(/\[/g,'(');
-    while(/\([^()]*\)/.test(t))t=t.replace(/\([^()]*\)/g,'');
-    return t.replace(/\(.*$/,'').replace(/\)/g,'').replace(/\s+/g,' ').trim()};
-  const add=t=>{t=clean(t);if(!t||t.length>24||/^\d+$/.test(t)||/[\u3040-\u30ff\u4e00-\u9fff]/.test(t))return;const k=t.toLowerCase();if(!seen.has(k)){seen.add(k);out.push(t)}};
-  // TJ 홈페이지에서 복사하면 '곡번호 / 제목 / 가수'가 한 줄씩 나와요 → 곡번호 다음 줄을 제목으로
-  const L=txt.split(/\n/).map(x=>x.replace(/\u00a0/g,' ').trim().replace(/^[-•·*]\s*/,'').trim()).filter(Boolean);
-  const numLines=L.filter(x=>/^\d{4,6}$/.test(x)).length;
-  if(numLines>=3){
-    for(let i=0;i<L.length;i++)if(/^\d{4,6}$/.test(L[i])){let j=i+1;while(j<L.length&&/^\d+$|곡번호/.test(L[j]))j++;if(j<L.length)add(L[j])}
-    return out;
-  }
-  txt.split(/\n/).forEach(line=>{
-    let t=line.replace(/\u00a0/g,' ').trim();if(!t)return;
-    let parts=t.split(/\t+|\s{2,}| - | – /).map(x=>x.trim()).filter(Boolean);
-    parts=parts.filter(x=>!/^\d+(위)?$/.test(x)&&!/^(유튜브|youtube|재생|MR|순위|곡\s?번호|곡 제목|가수|앨범아트)$/i.test(x));
-    if(!parts.length)return;
-    add(parts[0].replace(/^\d+\s+(\d{4,6}\s+)?/,''));
+/* ---------- 가사 → 후렴 단어 후보 ---------- */
+const LY_STOP=new Set(("나 너 난 넌 내 네 날 널 니 너의 나의 내가 네가 니가 우리 우린 그 이 저 것 거 게 수 더 또 다 잘 왜 참 좀 늘 꼭 그냥 이제 그래 그리고 그런데 근데 하지만 그럼 이런 저런 그런 어떤 무슨 모두 같이 함께 정말 진짜 너무 많이 조금 아주 그대로 이렇게 그렇게 어떻게 언제 어디 누구 뭐 왜요 있어 없어 있는 없는 하는 해 했어 할 한 하고 해요 돼 되 되는 될 이야 거야 건 걸 데 때 중 속 안 밖 위 아래 앞 뒤 "+
+  "oh yeah ah la na uh ooh woo hey yo eh hmm mm whoa the a an i you me my your to it and in on is be of for that this we our so do don't i'm it's just can all no not are was what with like baby").split(' '));
+const JOSA=['에게서','한테서','으로는','에서는','까지는','이라도','이라면','이라고','이랑','에서','에게','한테','까지','부터','처럼','보다','마저','조차','이나','으로','라고','라면','이야','이여','이에','은','는','이','가','을','를','에','의','도','만','로','와','과','랑','야','아','여','요','나'];
+// 명사 뒤에만 붙는 확실한 조사 / 동사 어미와 헷갈리는 조사
+const JOSA_SURE=new Set(['에게서','한테서','으로는','에서는','까지는','이라도','이라면','이라고','이랑','에서','에게','한테','까지','부터','처럼','보다','마저','조차','으로','을','를','의','에','도','만','로','와','과','랑']);
+function lyStem(w){
+  if(/^[a-z0-9']+$/.test(w))return w;
+  for(const j of JOSA){if(w.length>j.length&&w.endsWith(j)){const st=w.slice(0,-j.length);if(st.length>=1)return st}}
+  return w;
+}
+function lySplit(w){   // [어간, 떼어 낸 조사]
+  if(/^[a-z0-9']+$/.test(w))return [w,''];
+  for(const j of JOSA){if(w.length>j.length&&w.endsWith(j))return [w.slice(0,-j.length),j]}
+  return [w,''];
+}
+let lyCands=[],lyPicked=new Set();
+function lyFind(){
+  const txt=$('#lyText').value;if(!txt.trim()){toast('가사를 붙여 넣어 주세요');return}
+  const norm=t=>t.toLowerCase().replace(/\(.*?\)|\[.*?\]/g,' ').replace(/[^0-9a-z가-힣'\s]/g,' ');
+  const titleSet=new Set(norm($('#lyTitle').value).split(/\s+/).filter(Boolean).flatMap(w=>[w,lyStem(w)]));
+  const lines=norm(txt).split(/\n/).map(l=>l.split(/\s+/).filter(Boolean));
+  const cnt=new Map(),bi=new Map(),surf=new Map(),noun=new Set();
+  const bump=(m,k)=>m.set(k,(m.get(k)||0)+1);
+  lines.forEach(ws=>{
+    const st=ws.map(lyStem);
+    ws.forEach(w=>{const [a,j]=lySplit(w);
+      if(!j||JOSA_SURE.has(j))noun.add(a);           // 조사 없이 쓰였거나 확실한 조사가 붙음 → 명사
+      if(!surf.has(a))surf.set(a,new Map());bump(surf.get(a),w)});
+    st.forEach(w=>{if(!LY_STOP.has(w)&&!titleSet.has(w)&&w.length<=8)bump(cnt,w)});
+    for(let i=0;i<ws.length-1;i++){const a=st[i],b=ws[i+1];
+      if(!LY_STOP.has(a)&&!LY_STOP.has(b)&&!titleSet.has(a)&&!titleSet.has(b)&&(a+b).length<=9)bump(bi,a+' '+b)}
   });
-  return out;
+  const have=new Set(wordPool().map(x=>x.w.toLowerCase()));
+  // 명사로 확인 안 된 말(반짝이는, 달려가 …)은 가사에 나온 모양 그대로 보여 주기
+  const show=w=>{if(noun.has(w)||!surf.has(w))return w;return [...surf.get(w)].sort((a,b)=>b[1]-a[1])[0][0]};
+  let c=[...cnt].filter(([w,n])=>n>=2||w.length>=2).map(([w,n])=>({w:show(w),n})).filter(x=>!LY_STOP.has(x.w)&&!titleSet.has(x.w));
+  [...bi].filter(([w,n])=>n>=3).forEach(([w,n])=>c.push({w,n:n+0.5}));
+  c.sort((a,b)=>b.n-a.n||b.w.length-a.w.length);
+  lyCands=c.slice(0,40).map(x=>({...x,n:Math.floor(x.n),has:have.has(x.w)}));
+  lyPicked=new Set();
+  $('#lyInfo').textContent=lyCands.length?`후보 ${lyCands.length}개 · 많이 반복된 순 (테두리 초록 = 3번 이상, 후렴일 가능성 높음)`:'찾은 단어가 없어요';
+  lyRender();
 }
+function lyRender(){
+  $('#lyChips').innerHTML=lyCands.map((c,i)=>`<button class="lychip ${c.n>=3?'hook':''} ${lyPicked.has(i)?'on':''} ${c.has?'has':''}" onclick="lyToggle(${i})" title="${c.has?'이미 단어 카드에 있어요':''}">${esc(c.w)}<small>×${c.n}</small></button>`).join('');
+  $('#lyAddRow').style.display=lyCands.length?'flex':'none';$('#lySel').textContent=lyPicked.size;
+}
+function lyToggle(i){lyPicked.has(i)?lyPicked.delete(i):lyPicked.add(i);lyRender()}
+function lyAdd(){
+  if(!lyPicked.size){toast('추가할 단어를 눌러서 골라 주세요');return}
+  const ta=$('#sCustom');const cur=ta.value.split('\n').map(l=>l.split(/[,，]/)[0].trim()).filter(Boolean);
+  const add=[...lyPicked].map(i=>lyCands[i]).filter(c=>!cur.includes(c.w)).map(c=>`${c.w},${c.n>=4?2:3}`);
+  ta.value=(ta.value.trim()?ta.value.trim()+'\n':'')+add.join('\n');ta.oninput();
+  toast(`${add.length}개 단어를 추가했어요`);lyClear();$('#customDetails').open=true;
+}
+function lyClear(){$('#lyText').value='';$('#lyTitle').value='';lyCands=[];lyPicked=new Set();$('#lyInfo').textContent='';lyRender()}
 function wordPool(){
   const pool=[];
   const custom=S.custom.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{const m=l.split(/[,，]/);let s=parseInt(m[1]);if(!(s>=1&&s<=3))s=2;return {w:m[0].trim(),s}}).filter(x=>x.w);
@@ -554,7 +627,6 @@ function wordPool(){
     if(S.basic){W1.split(',').forEach(w=>pool.push({w,s:1}));if(!S.easy){W2.split(',').forEach(w=>pool.push({w,s:2}));W3.split(',').forEach(w=>pool.push({w,s:3}))}}
     const addPairs=(str)=>str.split(',').forEach(x=>{const i=x.lastIndexOf(':');const w=x.slice(0,i),st=+x.slice(i+1);if(!S.easy||st<=2)pool.push({w,s:st})});
     if(S.pop){addPairs(WPOP);addPairs(WPOPE)}
-    if(S.useChart&&S.chart)parseChart(S.chart).forEach(w=>pool.push({w,s:2}));
     if(S.kid)addPairs(WKID);
     if(S.eng){WE.split(',').forEach(x=>{const[w,s]=x.split(':');if(!S.easy||+s===1||+s===2)pool.push({w,s:+s})})}
   }

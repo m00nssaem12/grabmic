@@ -135,6 +135,17 @@ textarea{width:100%;min-height:110px;resize:vertical}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:15px;color:var(--dim);margin-top:8px}
 .hide-adj .adj{display:none}
 
+@media (min-width:901px) and (max-height:820px){
+  .wordcard{min-height:170px;padding:12px}
+  .wordcard .w{font-size:clamp(48px,6.5vw,84px)}
+  .status{min-height:0;padding:12px}
+  .status .big{font-size:clamp(26px,3vw,38px)}
+  .mic{font-size:52px}
+  .timer{font-size:44px}
+  .stage{gap:8px}
+  .ctrl .btn{padding:12px;font-size:22px}
+  #game .btn{padding-top:10px;padding-bottom:10px}
+}
 /* buzzers (한 화면 모드) */
 #buzzers{display:none;margin-top:14px;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr))}
 #buzzers.on{display:grid}
@@ -152,6 +163,8 @@ textarea{width:100%;min-height:110px;resize:vertical}
 .buzz:disabled{opacity:.3;box-shadow:none}
 #voiceInd{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:65;background:#000c;border:2px solid var(--pink);border-radius:999px;padding:6px 16px;font-size:17px;display:none;box-shadow:0 0 14px #ff3d9a66}
 #voiceInd.on{display:block}
+.meter{display:inline-block;width:70px;height:8px;background:#2b2438;border-radius:4px;overflow:hidden;vertical-align:middle;margin-left:6px}
+.meter i{display:block;height:100%;width:0;background:var(--mint);transition:width .05s}
 #voiceInd button{background:var(--mint);color:#14101c;border-radius:999px;padding:4px 12px;font-size:16px;margin-left:6px}
 /* client */
 #client{padding:14px;text-align:center}
@@ -266,8 +279,12 @@ textarea{width:100%;min-height:110px;resize:vertical}
             <div class="dim" style="font-size:20px">방 코드</div>
             <div class="code neon-mint" id="hostCode">----</div>
             <div class="dim" id="hostLink" style="font-size:15px;word-break:break-all"></div>
+            <div class="row" style="justify-content:center;margin-top:10px">
+              <button class="btn b-ghost" style="padding:8px 14px;font-size:16px" onclick="openQR()">QR 크게 보기</button>
+              <button class="btn b-ghost" style="padding:8px 14px;font-size:16px" onclick="copyLink()">링크 복사</button>
+            </div>
           </div>
-          <img class="qr" id="hostQR" alt="QR">
+          <img class="qr" id="hostQR" alt="QR" style="cursor:zoom-in" onclick="openQR()" title="눌러서 크게 보기">
         </div>
         <h2 style="margin-top:14px">들어온 사람 <span id="joinCount" class="dim"></span></h2>
         <div class="joined" id="joinedList"><span class="dim">참가자를 기다리는 중… 폰으로 QR을 찍거나 방 코드를 입력하세요</span></div>
@@ -300,6 +317,10 @@ textarea{width:100%;min-height:110px;resize:vertical}
       <button class="btn b-ghost" style="padding:8px 14px;font-size:16px" onclick="quitGame()">✕ 나가기</button>
       <div class="ttl neon-pink">GRAB THE MIC</div>
       <span id="gCodeTag" class="dim" style="font-size:18px"></span>
+      <span id="gJoinBtns" style="display:none">
+        <button class="btn b-ghost" style="padding:8px 14px;font-size:16px" onclick="openQR()">QR</button>
+        <button class="btn b-ghost" style="padding:8px 14px;font-size:16px" onclick="copyLink()">링크 복사</button>
+      </span>
     </div>
     <div class="row">
       <div class="info" id="gRound"></div>
@@ -362,6 +383,20 @@ textarea{width:100%;min-height:110px;resize:vertical}
     <p class="dim" style="margin-top:10px">온라인 방에서 <b>음성 방송</b>을 켜면 마이크를 잡은 사람의 목소리가 모두의 폰과 방장 화면으로 들려요. 같은 공간에서는 하울링이 날 수 있으니 떨어져서 할 때 써 주세요.</p>
     <p class="dim" style="margin-top:6px">※ 정답 판정은 진행자(또는 다 같이 합의)로 해요. 애매하면 다수결!</p>
     <div class="center" style="margin-top:14px"><button class="btn b-pink" onclick="document.getElementById('rulesOv').classList.remove('on')">알겠어요!</button></div>
+  </div>
+</div>
+
+<!-- QR 크게 -->
+<div class="ov" id="qrOv" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="box nbox-mint center" style="max-width:min(92vw,760px)">
+    <div class="dim" style="font-size:22px">폰 카메라로 찍으면 바로 들어와요</div>
+    <img id="qrBig" alt="QR" style="width:min(70vh,80vw,560px);height:min(70vh,80vw,560px);background:#fff;padding:14px;border-radius:16px;margin:14px auto;display:block">
+    <div style="font-size:22px">방 코드 <span class="code neon-mint" id="qrCode" style="font-size:clamp(44px,8vw,80px);letter-spacing:8px"></span></div>
+    <div class="dim" id="qrLink" style="font-size:15px;word-break:break-all;margin-top:6px"></div>
+    <div class="row" style="justify-content:center;margin-top:14px">
+      <button class="btn b-mint" onclick="copyLink()">링크 복사</button>
+      <button class="btn b-ghost" onclick="document.getElementById('qrOv').classList.remove('on')">닫기</button>
+    </div>
   </div>
 </div>
 
@@ -652,7 +687,7 @@ function startLocal(){
   const names=[...document.querySelectorAll('#pInputs input')].map((i,k)=>i.value.trim()||`${k+1}번`);
   store.set('gtm_names',names);MODE='local';
   newGame(names.map((n,i)=>({id:'p'+i,name:n,color:COLORS[i]})));
-  $('#gCodeTag').textContent='';show('game');renderGame();
+  $('#gCodeTag').textContent='';$('#gJoinBtns').style.display='none';show('game');renderGame();
 }
 function quitGame(){
   if(!confirm('게임을 끝내고 처음 화면으로 갈까요?'))return;
@@ -684,9 +719,8 @@ async function goHost(){
     if(!s.exists()||(Date.now()-(s.val().created||0))>6*3600e3){ROOM=c;break}}
   if(!ROOM){toast('방을 만들지 못했어요. 다시 시도해 주세요.');return}
   await roomRef().set({meta:{app:'grabmic',created:firebase.database.ServerValue.TIMESTAMP,status:'lobby',voice:!!S.voice},holder:'__lock'});
-  const url=location.origin+location.pathname+'?room='+ROOM;
-  $('#hostCode').textContent=ROOM;$('#hostLink').textContent=url;
-  $('#hostQR').src='https://api.qrserver.com/v1/create-qr-code/?size=170x170&data='+encodeURIComponent(url);
+  $('#hostCode').textContent=ROOM;$('#hostLink').textContent=joinURL();
+  $('#hostQR').src=qrSrc(340);
   $('#hostQR').onerror=()=>$('#hostQR').style.display='none';
   const jr=roomRef('joins');
   const onJ=s=>{const v=s.val();if(!v)return;addJoin(s.key,v.name)};
@@ -695,6 +729,15 @@ async function goHost(){
   const hr=roomRef('holder');hr.on('value',s=>onHolder(s.val()));
   hostRefs=[jr,hr];
   renderLobby();moveSettings('#hostSettingsSlot');show('hostLobby');
+}
+function joinURL(){return location.origin+location.pathname+'?room='+ROOM}
+function qrSrc(size){return 'https://api.qrserver.com/v1/create-qr-code/?size='+size+'x'+size+'&margin=0&data='+encodeURIComponent(joinURL())}
+function openQR(){if(!ROOM)return;$('#qrBig').src=qrSrc(600);$('#qrCode').textContent=ROOM;$('#qrLink').textContent=joinURL();$('#qrOv').classList.add('on')}
+function copyLink(){
+  if(!ROOM)return;const t=joinURL();
+  const fallback=()=>{const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();
+    let ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();toast(ok?'참가 링크를 복사했어요':'복사가 안 돼요. 링크를 길게 눌러 복사해 주세요')};
+  try{navigator.clipboard.writeText(t).then(()=>toast('참가 링크를 복사했어요'),fallback)}catch(e){fallback()}
 }
 function addJoin(id,name){
   let p=lobby.find(x=>x.id===id);
@@ -711,7 +754,7 @@ function kick(id){roomRef('joins/'+id).remove()}
 function startHost(){
   if(!wordPool().length){toast('단어가 하나도 없어요! 설정을 확인해 주세요.');return}
   newGame(lobby);roomRef('meta/status').set('playing');
-  $('#gCodeTag').textContent='방 '+ROOM;show('game');lockGrab();commit();
+  $('#gCodeTag').textContent='방 '+ROOM;$('#gJoinBtns').style.display='inline-flex';$('#gJoinBtns').style.gap='8px';show('game');lockGrab();commit();
 }
 function pushState(){if(!ROOM||!db)return;const s=JSON.parse(JSON.stringify(G));roomRef('state').set(s)}
 function openGrab(){if(MODE==='host'&&db)roomRef('holder').set(null)}
@@ -764,7 +807,12 @@ function renderClient(){
   _renderClient();
   const on=!!((cState&&cState.voice)||cMeta.voice);
   const vb=$('#cVoiceBar');
-  vb.style.display=on&&!voicePrepared?'block':'none';
+  vb.style.display=on?'block':'none';
+  if(on){const want=voicePrepared?(micStream?'ready':'listen'):'need';
+    if(vb.dataset.st!==want){vb.dataset.st=want;
+      vb.innerHTML=want==='need'?`<button class="btn b-mint" style="width:100%;font-size:18px" onclick="prepareVoice()">음성 방송 준비하기 (마이크 허용 + 소리 켜기)</button>`
+        :want==='ready'?`<div class="dim" style="font-size:16px">내 마이크 <span class="meter" style="width:140px"><i></i></span> 말해 보면 막대가 움직여요</div>`
+        :`<div class="dim" style="font-size:16px">마이크 없이 듣기만 해요 <button class="btn b-ghost" style="padding:4px 10px;font-size:14px" onclick="voicePrepared=false;prepareVoice()">다시 허용</button></div>`}}
   if(CROOM)rtcSync(cState,ME);
 }
 function _renderClient(){
@@ -822,16 +870,37 @@ function clientGrab(){
    학교망·일부 LTE처럼 막힌 망에서 연결이 안 되면 TURN_SERVERS에 TURN 서버 정보를 넣으세요.
    예) {urls:"turn:서버주소:3478", username:"아이디", credential:"비밀번호"} */
 const TURN_SERVERS = [];
-const ICE=[{urls:["stun:stun.l.google.com:19302","stun:stun1.l.google.com:19302"]},...TURN_SERVERS];
+// Metered(무료 20GB/월) 계정을 만들었다면 아래 두 칸만 채우면 TURN 정보를 자동으로 받아와요.
+//   METERED_APP: 대시보드의 앱 이름 (예: "m00n"  →  m00n.metered.live)
+//   METERED_API_KEY: 대시보드 TURN Credentials 메뉴의 API Key
+const METERED_APP = "";
+const METERED_API_KEY = "";
+let ICE=[{urls:["stun:stun.l.google.com:19302","stun:stun1.l.google.com:19302"]},...TURN_SERVERS];
+(async()=>{if(!METERED_APP||!METERED_API_KEY)return;
+  try{const r=await fetch(`https://${METERED_APP}.metered.live/api/v1/turn/credentials?apiKey=${METERED_API_KEY}`);const list=await r.json();
+    if(Array.isArray(list)&&list.length)ICE=[...ICE,...list]}catch(e){}})();
+const hasTURN=()=>ICE.some(x=>[].concat(x.urls).some(u=>/^turns?:/.test(u)));
 let rtc={sid:null,pcs:{},refs:[]},micStream=null,voicePrepared=false;
 function setVoiceInd(html){const el=$('#voiceInd');el.innerHTML=html||'';el.classList.toggle('on',!!html)}
 async function getMic(){
   if(micStream&&micStream.getTracks().some(t=>t.readyState==='live'))return micStream;
-  micStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+  micStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:false,autoGainControl:false}});
+  startMeter();
   micStream.getTracks().forEach(t=>t.enabled=false);
   return micStream;
 }
-function releaseMic(){if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null}voicePrepared=false}
+// 내 마이크 소리 크기 표시 (방송과 상관없이 늘 측정)
+let meterRAF=0,micLevel=0;
+function startMeter(){
+  try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();AC.resume();
+    const src=AC.createMediaStreamSource(micStream.clone()),an=AC.createAnalyser();an.fftSize=512;src.connect(an);
+    const buf=new Uint8Array(an.fftSize);cancelAnimationFrame(meterRAF);
+    const loop=()=>{an.getByteTimeDomainData(buf);let m=0;for(const v of buf)m=Math.max(m,Math.abs(v-128));
+      micLevel=Math.min(1,m/64);document.querySelectorAll('.meter i').forEach(el=>el.style.width=(micLevel*100)+'%');meterRAF=requestAnimationFrame(loop)};
+    loop();
+  }catch(e){}
+}
+function releaseMic(){cancelAnimationFrame(meterRAF);if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null}voicePrepared=false}
 function unlockAudio(){
   const a=$('#rtcAudio');try{a.muted=false;const p=a.play();if(p)p.catch(()=>{})}catch(e){}
   try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();AC.resume()}catch(e){}
@@ -866,11 +935,16 @@ async function rtcBroadcast(st,myId){
   try{stream=await getMic()}catch(e){toast('마이크 권한을 허용해야 내 노래가 방송돼요');return}
   if(rtc.sid!==sid)return;
   stream.getTracks().forEach(t=>t.enabled=true);
-  setVoiceInd('내 목소리 방송 중');
   const base=rtcBase();
   const ids=st.players.map(p=>p.id).filter(id=>id!==myId).concat('__host');
+  const upd=()=>{if(rtc.sid!==sid)return;const pcs=Object.values(rtc.pcs);
+    const ok=pcs.filter(p=>p.connectionState==='connected').length,bad=pcs.filter(p=>p.connectionState==='failed').length;
+    setVoiceInd(`방송 중 · ${ok}/${ids.length} 연결 <span class="meter"><i></i></span>${bad&&!ok?' · 연결 실패':''}`)};
+  upd();
+  setTimeout(()=>{if(rtc.sid===sid&&micLevel<0.02)toast('마이크 소리가 거의 안 들어와요. 마이크 권한이나 다른 앱 사용을 확인해 주세요')},4000);
   for(const lid of ids){
     const pc=new RTCPeerConnection({iceServers:ICE});rtc.pcs[lid]=pc;
+    pc.onconnectionstatechange=upd;
     stream.getTracks().forEach(t=>pc.addTrack(t,stream));
     pc.onicecandidate=e=>{if(e.candidate)base.child('ch/'+lid).push(e.candidate.toJSON())};
     let ready=false;const q=[];
@@ -885,10 +959,14 @@ async function rtcBroadcast(st,myId){
     base.child('offers/'+lid).set({type:offer.type,sdp:offer.sdp});
   }
 }
+function failMsg(){return hasTURN()?'음성 연결이 안 돼요. 와이파이/데이터를 바꿔 보세요':'음성 연결이 안 돼요 · 이 네트워크는 TURN 서버가 필요해요'}
 function rtcListen(st,myId){
   const sid=rtc.sid,base=rtcBase();let pc=null;const q=[];
   const hn=esc((st.players.find(p=>p.id===st.holder)||{}).name||'');
   setVoiceInd(`${hn} 목소리 연결 중…`);
+  setTimeout(()=>{if(rtc.sid!==sid)return;
+    if(!pc)setVoiceInd('노래하는 사람 쪽 방송이 시작되지 않았어요 (마이크 권한 확인)');
+    else if(pc.connectionState!=='connected')setVoiceInd(failMsg())},10000);
   const or=base.child('offers/'+myId);
   or.on('value',async s=>{const v=s.val();if(!v||pc||rtc.sid!==sid)return;
     pc=new RTCPeerConnection({iceServers:ICE});rtc.pcs.h=pc;
@@ -896,7 +974,7 @@ function rtcListen(st,myId){
       const p=a.play();const ok=()=>{if(rtc.sid===sid)setVoiceInd(`${hn} 노래 듣는 중`)};
       if(p&&p.then)p.then(ok).catch(()=>{if(rtc.sid===sid)setVoiceInd(`소리가 꺼져 있어요<button onclick="unlockAudio()">탭해서 듣기</button>`)});else ok()};
     pc.onicecandidate=e=>{if(e.candidate)base.child('cl/'+myId).push(e.candidate.toJSON())};
-    pc.onconnectionstatechange=()=>{if(pc.connectionState==='failed'&&rtc.sid===sid)setVoiceInd('음성 연결 실패 (네트워크 제한)')};
+    pc.onconnectionstatechange=()=>{if(pc.connectionState==='failed'&&rtc.sid===sid)setVoiceInd(failMsg())};
     try{await pc.setRemoteDescription(v);const ans=await pc.createAnswer();await pc.setLocalDescription(ans);
       if(rtc.sid!==sid)return;
       base.child('answers/'+myId).set({type:ans.type,sdp:ans.sdp});

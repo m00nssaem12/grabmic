@@ -225,12 +225,30 @@ textarea{width:100%;min-height:110px;resize:vertical}
       <label class="opt"><input type="checkbox" id="sSpecial"> 특수 칸 사용 (솔로·그룹·댄스곡 조건)</label>
     </div>
     <div>
+      <div class="row" style="gap:8px;margin:2px 0 6px">
+        <span class="dim" style="font-size:16px">빠른 설정</span>
+        <button class="btn b-ghost preset" style="padding:6px 12px;font-size:16px" onclick="applyPreset('basic')">기본</button>
+        <button class="btn b-ghost preset" style="padding:6px 12px;font-size:16px" onclick="applyPreset('pop')">노래방 인기곡</button>
+        <button class="btn b-ghost preset" style="padding:6px 12px;font-size:16px" onclick="applyPreset('kid')">동요</button>
+      </div>
       <label class="opt"><input type="checkbox" id="sBasic"> 기본 우리말 단어</label>
+      <label class="opt"><input type="checkbox" id="sPop"> 노래방 인기곡 단어 <span class="dim" style="font-size:15px">(2025~26 노래방 차트 곡)</span></label>
+      <label class="opt"><input type="checkbox" id="sKid"> 동요 단어 <span class="dim" style="font-size:15px">(음악 교과서·유치원 동요)</span></label>
       <label class="opt"><input type="checkbox" id="sEng"> 영어 가사 단어 (love, baby…)</label>
+      <label class="opt">부를 수 있는 노래
+        <select id="sSongs"><option value="any">아무 노래나</option><option value="kid">동요만</option><option value="pop">가요만 (동요 X)</option></select>
+      </label>
       <label class="opt"><input type="checkbox" id="sEasy"> 쉬운 단어만 (자주 나오는 단어)</label>
       <label class="opt"><input type="checkbox" id="sVoice"> 음성 방송 <span class="dim" style="font-size:15px">(온라인 방 — 마이크 잡은 사람 목소리만 모두에게)</span></label>
     </div>
   </div>
+  <details style="margin-top:8px">
+    <summary style="cursor:pointer;font-size:18px">최신 노래방 차트 붙여넣기</summary>
+    <p class="dim" style="margin:6px 0;line-height:1.5">TJ미디어 홈페이지 인기차트(tjmedia.com → 인기차트)에서 순위 목록을 드래그해 복사한 뒤 붙여 넣으세요. 곡 제목이 단어 카드가 돼요.
+      직접 쓸 때는 한 줄에 한 곡씩 <b>제목 - 가수</b>(가수는 없어도 돼요).</p>
+    <textarea id="sChart" placeholder="1  83945  Drowning  WOODZ&#10;나는 반딧불 - 황가람&#10;모르시나요"></textarea>
+    <label class="opt"><input type="checkbox" id="sUseChart"> 붙여 넣은 차트 곡 제목 사용 <span class="dim" id="chartCount" style="font-size:15px"></span></label>
+  </details>
   <details style="margin-top:8px">
     <summary style="cursor:pointer;font-size:18px">나만의 단어 추가하기</summary>
     <p class="dim" style="margin:6px 0">한 줄에 하나씩. 쉼표 뒤에 칸 수(1~3)를 적을 수 있어요. 예) <b>떡볶이,3</b></p>
@@ -369,6 +387,8 @@ textarea{width:100%;min-height:110px;resize:vertical}
       <li><b>맞았다면</b> — 카드에 적힌 숫자(●)만큼 앞으로 가요.</li>
       <li><b>틀렸다면</b> — 음소거 토큰을 받고, 마이크는 다시 가운데로! 남은 사람끼리 다시 쟁탈전을 해요.</li>
     </ul>
+    <h3>노래 종류 정하기</h3>
+    <p>설정의 <b>부를 수 있는 노래</b>에서 "동요만" 또는 "가요만"을 고르면 그 종류의 노래만 정답이에요. <b>빠른 설정</b>의 "동요"를 누르면 동요 단어와 동요만 정답 규칙이 한 번에 켜져요.</p>
     <h3>음소거 토큰</h3>
     <p>음소거 토큰을 받으면 <b>다음 라운드가 끝날 때까지</b> 아무 소리도 낼 수 없어요. (마이크도 못 잡아요)</p>
     <h3>특수 칸 (설정에서 켜기)</h3>
@@ -436,6 +456,12 @@ const FIREBASE_CONFIG = {
 const W1 = "사랑,너,나,우리,하늘,별,밤,꿈,눈물,바람,비,마음,오늘,안녕,함께,다시,하나,세상,노래,시간,기억,행복,웃음,봄,친구,빛,처음,영원히,사랑해,좋아해,보고 싶어,미안해,고마워,달,손,어제,내일,혼자,지금,눈,이별,그대,얼굴,이름,소원,새로운,떠나,멀리";
 const W2 = "바다,꽃,여름,겨울,가을,태양,구름,무지개,새벽,아침,거리,길,집,엄마,추억,편지,비밀,거짓말,심장,날개,우주,기적,천사,소녀,소년,여행,파도,노을,하얀,빨간,파란,춤,파티,주인공,공주,약속,첫눈,눈빛,목소리,그림자,불꽃,반짝반짝,두근두근,달려,날아,기다려,미소,향기,선물,하루,별빛,햇살,첫사랑,고백,운명,청춘,그리움,낭만,이별 노래,밤하늘,바닷가,유리,멜로디,꽃잎,봄날,문,창문,전화,빗물,하늘색,노란,눈사람,크리스마스,생일";
 const W3 = "자전거,기차,버스,비행기,고양이,강아지,토끼,곰,호랑이,나비,커피,우산,사과,딸기,바나나,초콜릿,사탕,아이스크림,피아노,기타,카메라,신발,모자,거울,시계,풍선,로켓,지구,해바라기,장미,산타,할머니,아빠,월요일,일요일,수박,케이크,라면,우유,택시,지하철,안경,연필,공룡,펭귄,오리,개구리,돌고래,무지개빛,별똥별,동물원,엘리베이터,서울,부산,제주도,네온사인,라디오,영화,드라마,주말,금요일,월급";
+/* 노래방 인기곡 단어 — 2025~2026 TJ 노래방 차트 상위권 곡(연간·월간·HOT100·트로트 차트)과
+   2026 가요 인기곡의 제목·후렴에 나오는 말. 최신 차트는 설정의 '차트 붙여넣기'로 바꿔 쓸 수 있어요. */
+const WPOP = "반딧불:2,모르시나요:2,천상연:3,응급실:2,시작의 아이:3,바보:2,행복하지 말아요:3,사치:3,당신을 위하여:3,시든 꽃:3,슬픈 사랑:2,사랑했잖아:2,크게 울어라:3,하늘땅 별땅:3,잔불:3,노스탈지아:3,하고 싶은 말:2,내가 더 사랑한단 이유로:3,애련:3,좋니:2,질색:3,빵빵:3,도망가:2,천상재회:3,초혼:3,평행선:3,아모르 파티:3,무조건:3";
+const WPOPE = "drowning:2,golden:1,my love:2,pretty girl:2,error:3,sparkle:2,iconic heart:3,soulmate:3,looks can kill:3,neon:2,lemonade:2,it's me:2,boompala:3,choom:3,rude:3,knife:3,crown:2,404:3";
+/* 학교 동요 단어 — 초등 음악 교과서·유치원에서 많이 부르는 동요에 나오는 말 */
+const WKID = "토끼:1,산토끼:1,깡충깡충:1,나비:1,학교종:1,땡땡땡:2,반달:2,은하수:2,쪽배:3,계수나무:3,고향:2,복숭아꽃:3,살구꽃:3,진달래:2,엄마:1,아빠:1,섬:3,갈매기:3,자장노래:3,과수원:3,아카시아:3,하얀 꽃:2,개구리:1,개굴개굴:1,둥글게:2,짝짝:2,작은 별:1,반짝반짝:1,퐁당퐁당:2,돌:2,누나:2,냇물:2,시냇물:2,염소:2,파란 하늘:2,텔레비전:2,숲속:2,산새:3,약속:2,다람쥐:2,도토리:2,꽃밭:2,채송화:3,봉숭아:3,봄바람:2,고드름:2,눈사람:2,곰:1,아빠 곰:1,애기 곰:1,송아지:2,얼룩:2,시계:2,똑딱똑딱:2,산타 할아버지:1,루돌프:1,빨간 코:2,구슬비:3,송알송알:3,어린이날:2,오월:2,무궁화:2,태극기:2,할머니:2,고개:2,개나리:2,병아리:1,봄나들이:3,종이배:3,기찻길:2,달님:2,해님:2,별님:2,무지개:2,우산:2,빗방울:2,눈꽃:2,허수아비:3,잠자리:2,코끼리:1,원숭이:1,엉덩이:1,바나나:1,기차:1,올챙이:2,뒷다리:2,앞다리:2,생일:1,축하:1,친구:1,학교:1,선생님:2,유치원:3,꼬마:2,노래:1,춤:2";
 const WE = "love:1,baby:1,girl:1,dance:1,boy:2,party:2,heart:2,dream:2,star:2,night:2,sky:2,summer:2,fire:2,hello:2,sorry:2,forever:2,happy:2,hot:2,sweet:2,beautiful:2,tonight:2,music:2,shine:2,light:2,good:2,money:3,candy:3,magic:3,crazy:3,cool:3,rain:3,sun:3,moon:3,run:3,fly:3,bye:3,yes:3,friend:3,world:3,time:2,young:3,red:3";
 
 const SPECIALS = {
@@ -477,23 +503,59 @@ const sfx={
 };
 
 /* ===================== 설정 ===================== */
-let S = Object.assign({len:12,timer:10,special:true,basic:true,eng:false,easy:false,custom:"",onlyCustom:false,voice:false}, store.get('gtm_settings',{}));
+let S = Object.assign({len:12,timer:10,special:true,basic:true,eng:false,easy:false,custom:"",onlyCustom:false,voice:false,pop:false,kid:false,songs:"any",chart:"",useChart:false}, store.get('gtm_settings',{}));
 function bindSettings(){
   $('#sLen').value=S.len;$('#sTimer').value=S.timer;$('#sSpecial').checked=S.special;
   $('#sBasic').checked=S.basic;$('#sEng').checked=S.eng;$('#sEasy').checked=S.easy;
-  $('#sCustom').value=S.custom;$('#sOnlyCustom').checked=S.onlyCustom;$('#sVoice').checked=!!S.voice;
+  $('#sCustom').value=S.custom;$('#sOnlyCustom').checked=S.onlyCustom;$('#sVoice').checked=!!S.voice;$('#sPop').checked=!!S.pop;$('#sKid').checked=!!S.kid;$('#sSongs').value=S.songs||'any';$('#sChart').value=S.chart||'';$('#sUseChart').checked=!!S.useChart;
   const upd=()=>{S={len:+$('#sLen').value,timer:+$('#sTimer').value,special:$('#sSpecial').checked,basic:$('#sBasic').checked,
-    eng:$('#sEng').checked,easy:$('#sEasy').checked,custom:$('#sCustom').value,onlyCustom:$('#sOnlyCustom').checked,voice:$('#sVoice').checked};
+    eng:$('#sEng').checked,easy:$('#sEasy').checked,custom:$('#sCustom').value,onlyCustom:$('#sOnlyCustom').checked,voice:$('#sVoice').checked,pop:$('#sPop').checked,kid:$('#sKid').checked,songs:$('#sSongs').value,chart:$('#sChart').value,useChart:$('#sUseChart').checked};
+    $('#chartCount').textContent=S.chart.trim()?`(${parseChart(S.chart).length}곡 인식)`:'';
     if(MODE==='host'&&ROOM&&db){roomRef('meta/voice').set(S.voice);if(G){G.voice=S.voice;commit()}}
     store.set('gtm_settings',S);$('#deckCount').textContent=`사용할 단어 카드: ${wordPool().length}장`};
-  ['#sLen','#sTimer','#sSpecial','#sBasic','#sEng','#sEasy','#sOnlyCustom','#sVoice'].forEach(id=>$(id).onchange=upd);
-  $('#sCustom').oninput=upd;upd();
+  ['#sLen','#sTimer','#sSpecial','#sBasic','#sEng','#sEasy','#sOnlyCustom','#sVoice','#sPop','#sKid','#sSongs','#sUseChart'].forEach(id=>$(id).onchange=upd);
+  $('#sCustom').oninput=upd;$('#sChart').oninput=()=>{if($('#sChart').value.trim())$('#sUseChart').checked=true;upd()};upd();
+}
+function applyPreset(k){
+  const set=(id,v)=>{const el=$(id);if(el.type==='checkbox')el.checked=v;else el.value=v};
+  if(k==='basic'){set('#sBasic',true);set('#sPop',false);set('#sKid',false);set('#sUseChart',false);set('#sEng',false);set('#sSongs','any')}
+  if(k==='pop'){set('#sBasic',false);set('#sPop',true);set('#sKid',false);set('#sEng',false);set('#sSongs','pop');if($('#sChart').value.trim())set('#sUseChart',true)}
+  if(k==='kid'){set('#sBasic',false);set('#sPop',false);set('#sKid',true);set('#sUseChart',false);set('#sEng',false);set('#sSongs','kid');set('#sSpecial',false);set('#sEasy',false)}
+  set('#sOnlyCustom',false);$('#sBasic').onchange();
+  toast({basic:'기본 단어로 설정했어요',pop:'노래방 인기곡 단어 + 가요만 정답',kid:'동요 단어 + 동요만 정답'}[k]);
+}
+// 차트 붙여넣기 → 곡 제목 목록
+function parseChart(txt){
+  const out=[],seen=new Set();
+  const clean=t=>{t=t.replace(/[（［]/g,'(').replace(/[）］\]]/g,')').replace(/\[/g,'(');
+    while(/\([^()]*\)/.test(t))t=t.replace(/\([^()]*\)/g,'');
+    return t.replace(/\(.*$/,'').replace(/\)/g,'').replace(/\s+/g,' ').trim()};
+  const add=t=>{t=clean(t);if(!t||t.length>24||/^\d+$/.test(t)||/[\u3040-\u30ff\u4e00-\u9fff]/.test(t))return;const k=t.toLowerCase();if(!seen.has(k)){seen.add(k);out.push(t)}};
+  // TJ 홈페이지에서 복사하면 '곡번호 / 제목 / 가수'가 한 줄씩 나와요 → 곡번호 다음 줄을 제목으로
+  const L=txt.split(/\n/).map(x=>x.replace(/\u00a0/g,' ').trim().replace(/^[-•·*]\s*/,'').trim()).filter(Boolean);
+  const numLines=L.filter(x=>/^\d{4,6}$/.test(x)).length;
+  if(numLines>=3){
+    for(let i=0;i<L.length;i++)if(/^\d{4,6}$/.test(L[i])){let j=i+1;while(j<L.length&&/^\d+$|곡번호/.test(L[j]))j++;if(j<L.length)add(L[j])}
+    return out;
+  }
+  txt.split(/\n/).forEach(line=>{
+    let t=line.replace(/\u00a0/g,' ').trim();if(!t)return;
+    let parts=t.split(/\t+|\s{2,}| - | – /).map(x=>x.trim()).filter(Boolean);
+    parts=parts.filter(x=>!/^\d+(위)?$/.test(x)&&!/^(유튜브|youtube|재생|MR|순위|곡\s?번호|곡 제목|가수|앨범아트)$/i.test(x));
+    if(!parts.length)return;
+    add(parts[0].replace(/^\d+\s+(\d{4,6}\s+)?/,''));
+  });
+  return out;
 }
 function wordPool(){
   const pool=[];
   const custom=S.custom.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{const m=l.split(/[,，]/);let s=parseInt(m[1]);if(!(s>=1&&s<=3))s=2;return {w:m[0].trim(),s}}).filter(x=>x.w);
   if(!S.onlyCustom){
     if(S.basic){W1.split(',').forEach(w=>pool.push({w,s:1}));if(!S.easy){W2.split(',').forEach(w=>pool.push({w,s:2}));W3.split(',').forEach(w=>pool.push({w,s:3}))}}
+    const addPairs=(str)=>str.split(',').forEach(x=>{const i=x.lastIndexOf(':');const w=x.slice(0,i),st=+x.slice(i+1);if(!S.easy||st<=2)pool.push({w,s:st})});
+    if(S.pop){addPairs(WPOP);addPairs(WPOPE)}
+    if(S.useChart&&S.chart)parseChart(S.chart).forEach(w=>pool.push({w,s:2}));
+    if(S.kid)addPairs(WKID);
     if(S.eng){WE.split(',').forEach(x=>{const[w,s]=x.split(':');if(!S.easy||+s===1||+s===2)pool.push({w,s:+s})})}
   }
   custom.forEach(c=>pool.push(c));
@@ -512,8 +574,9 @@ function newGame(players){
   DECK=shuffle(wordPool().slice());
   G={players:players.map((p,i)=>({id:p.id,name:p.name,color:p.color||COLORS[i%10],pos:0,mutedThrough:-1})),
      round:1,phase:'ready',card:null,holder:null,singAt:0,winner:null,
-     len:S.len,special:S.special,timer:S.timer,voice:!!S.voice,msg:"카드를 뒤집어 게임을 시작하세요!",lastOk:null};
+     len:S.len,special:S.special,timer:S.timer,voice:!!S.voice,songs:S.songs||'any',msg:"카드를 뒤집어 게임을 시작하세요!",lastOk:null};
 }
+const songWord=g=>g&&g.songs==='kid'?'동요':g&&g.songs==='pop'?'가요':'노래';
 const P=id=>G.players.find(p=>p.id===id);
 const isMuted=p=>p&&p.mutedThrough>=G.round;
 function drawCard(){if(!DECK.length)DECK=shuffle(wordPool().slice());return DECK.pop()||{w:"사랑",s:1}}
@@ -554,7 +617,7 @@ function actAdj(id,d){const p=P(id);if(!p)return;p.pos=Math.max(0,Math.min(G.len
   if(p.pos>=G.len&&G.phase!=='over'){G.phase='over';G.winner=p.id;lockGrab();sfx.win()}commit()}
 function actUnmute(id){const p=P(id);if(p){p.mutedThrough=-1;commit()}}
 function actRestart(){G.players.forEach(p=>{p.pos=0;p.mutedThrough=-1});Object.assign(G,{round:1,phase:'ready',card:null,holder:null,winner:null,msg:"새 게임! 카드를 뒤집으세요.",lastOk:null});
-  DECK=shuffle(wordPool().slice());G.len=S.len;G.special=S.special;G.timer=S.timer;G.voice=!!S.voice;$('#winOv').classList.remove('on');lockGrab();commit()}
+  DECK=shuffle(wordPool().slice());G.len=S.len;G.special=S.special;G.timer=S.timer;G.voice=!!S.voice;G.songs=S.songs||'any';$('#winOv').classList.remove('on');lockGrab();commit()}
 
 function commit(flip){renderGame(flip);if(MODE==='host'){pushState();rtcSync(G,'__host')}}
 
@@ -576,11 +639,11 @@ function renderGame(flip){
     h=`<div class="big neon-pink">다음 카드 준비!</div><div class="msg">${esc(G.msg||"")}</div>`;
   }else if(G.phase==='grab'){
     const free=G.players.filter(p=>!isMuted(p)).length;
-    h=`<div><span class="mic wobble">🎤</span></div><div class="big neon-mint">마이크를 잡아라!</div><div class="msg">${esc(G.msg||"")}${free===0?'<br>모두 음소거예요 — 카드를 넘기세요.':''}</div>`;
+    h=`<div><span class="mic wobble">🎤</span></div><div class="big neon-mint">마이크를 잡아라!</div>${G.songs&&G.songs!=='any'?`<div class="cond" style="margin:2px auto">${songWord(G)}만 정답!</div>`:''}<div class="msg">${esc(G.msg||"")}${free===0?'<br>모두 음소거예요 — 카드를 넘기세요.':''}</div>`;
   }else if(G.phase==='sing'){
     const p=P(G.holder);const sp=specialAt(p.pos,G.len,G.special);
     h=`<div class="big" style="color:${p.color};text-shadow:0 0 14px ${p.color}">${esc(p.name)}</div>
-       <div class="msg">"${esc(G.card.w)}"이(가) 들어간 노래를 불러 주세요!</div>
+       <div class="msg">"${esc(G.card.w)}"이(가) 들어간 ${songWord(G)}를 불러 주세요!</div>
        ${sp?`<div><span class="cond">${SPECIALS[sp].ic} ${SPECIALS[sp].cond}</span></div>`:''}
        ${G.timer?`<div class="timer" id="timerTxt">${G.timer}</div>`:''}`;
   }else if(G.phase==='over'){
@@ -734,10 +797,7 @@ function joinURL(){return location.origin+location.pathname+'?room='+ROOM}
 function qrSrc(size){return 'https://api.qrserver.com/v1/create-qr-code/?size='+size+'x'+size+'&margin=0&data='+encodeURIComponent(joinURL())}
 function openQR(){if(!ROOM)return;$('#qrBig').src=qrSrc(600);$('#qrCode').textContent=ROOM;$('#qrLink').textContent=joinURL();$('#qrOv').classList.add('on')}
 function copyLink(){
-  if(!ROOM)return;const t=joinURL();
-  const fallback=()=>{const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();
-    let ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();toast(ok?'참가 링크를 복사했어요':'복사가 안 돼요. 링크를 길게 눌러 복사해 주세요')};
-  try{navigator.clipboard.writeText(t).then(()=>toast('참가 링크를 복사했어요'),fallback)}catch(e){fallback()}
+  if(!ROOM)return;copyText(joinURL(),'참가 링크를 복사했어요');
 }
 function addJoin(id,name){
   let p=lobby.find(x=>x.id===id);
@@ -808,9 +868,13 @@ function renderClient(){
   const on=!!((cState&&cState.voice)||cMeta.voice);
   const vb=$('#cVoiceBar');
   vb.style.display=on?'block':'none';
-  if(on){const want=voicePrepared?(micStream?'ready':'listen'):'need';
+  if(on){const want=micErr?'err:'+micErr.msg:voicePrepared?(micStream?'ready':'listen'):'need';
     if(vb.dataset.st!==want){vb.dataset.st=want;
-      vb.innerHTML=want==='need'?`<button class="btn b-mint" style="width:100%;font-size:18px" onclick="prepareVoice()">음성 방송 준비하기 (마이크 허용 + 소리 켜기)</button>`
+      vb.innerHTML=micErr?`<div class="box" style="border-color:var(--red);padding:12px;text-align:left;font-size:16px;line-height:1.5">${esc(micErr.msg)}
+          <div class="row" style="margin-top:8px">${micErr.open?'<button class="btn b-yellow" style="padding:8px 14px;font-size:16px" onclick="openExternal()">다른 브라우저로 열기</button>':''}
+          <button class="btn b-mint" style="padding:8px 14px;font-size:16px" onclick="prepareVoice()">다시 시도</button>
+          <button class="btn b-ghost" style="padding:8px 14px;font-size:16px" onclick="micErr=null;voicePrepared=true;renderClient()">듣기만 할게요</button></div></div>`
+        :want==='need'?`<button class="btn b-mint" style="width:100%;font-size:18px" onclick="prepareVoice()">음성 방송 준비하기 (마이크 허용 + 소리 켜기)</button>`
         :want==='ready'?`<div class="dim" style="font-size:16px">내 마이크 <span class="meter" style="width:140px"><i></i></span> 말해 보면 막대가 움직여요</div>`
         :`<div class="dim" style="font-size:16px">마이크 없이 듣기만 해요 <button class="btn b-ghost" style="padding:4px 10px;font-size:14px" onclick="voicePrepared=false;prepareVoice()">다시 허용</button></div>`}}
   if(CROOM)rtcSync(cState,ME);
@@ -836,6 +900,7 @@ function _renderClient(){
     h+=`<div class="cl-word neon-pink" style="font-size:40px;margin-top:30px">다음 카드</div><div class="cl-state">방장이 카드를 뒤집기를 기다려요…</div><div class="dim" style="margin-top:8px;font-size:18px">${esc(s.msg||'')}</div>`;
   }else if(s.phase==='grab'){
     h+=`<div class="cl-word neon-mint">${esc(s.card.w)}</div><div class="dim">맞히면 ${'●'.repeat(s.card.s)} ${s.card.s}칸</div>
+      ${s.songs&&s.songs!=='any'?`<div><span class="cond">${songWord(s)}만 정답!</span></div>`:''}
       ${sp?`<div><span class="cond">${SPECIALS[sp].ic} ${SPECIALS[sp].cond}</span></div>`:''}
       <button class="bigmic" id="micBtn" ${muted?'disabled':''} onclick="clientGrab()">${muted?'🤐':'🎤'}</button>
       <div class="cl-state">${muted?'음소거 중이에요. 다음 라운드가 끝날 때까지 쉿!':'떠오르면 마이크를 눌러요!'}</div>
@@ -906,10 +971,45 @@ function unlockAudio(){
   try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();AC.resume()}catch(e){}
   if(a.srcObject&&rtc.sid)setVoiceInd('노래 듣는 중');
 }
+// 마이크를 쓸 수 없는 환경 알아내기
+const UA=navigator.userAgent;
+const IN_APP=/KAKAOTALK|NAVER\(inapp|Instagram|FBAN|FBAV|Line\/|DaumApps|everytimeApp|Whale\/.*inapp/i.test(UA);
+const IS_ANDROID=/Android/i.test(UA),IS_IOS=/iPhone|iPad|iPod/i.test(UA);
+let micErr=null;   // 마지막 마이크 오류 안내
+function micBlockReason(){
+  if(!window.isSecureContext)return {msg:'https 주소에서만 마이크를 쓸 수 있어요. 깃허브 페이지스(https://…) 주소로 열어 주세요.'};
+  if(window.top!==window.self)return {msg:'미리보기 창 안에서는 마이크를 쓸 수 없어요. 새 창(브라우저)으로 열어 주세요.',open:true};
+  if(IN_APP||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)
+    return {msg:(IN_APP?'카카오톡·네이버 같은 앱 안 브라우저는':'이 브라우저는')+' 마이크를 막아 둬요. '+(IS_IOS?'사파리로':'크롬으로')+' 열어 주세요.',open:true};
+  return null;
+}
+function openExternal(){
+  const url=location.href;
+  if(/KAKAOTALK/i.test(UA)){location.href='kakaotalk://web/openExternal?url='+encodeURIComponent(url);return}
+  if(IS_ANDROID){location.href='intent://'+url.replace(/^https?:\/\//,'')+'#Intent;scheme=https;package=com.android.chrome;end';return}
+  if(window.top!==window.self){window.open(url,'_blank');return}
+  copyText(url,'주소를 복사했어요. 사파리/크롬 주소창에 붙여 넣어 주세요');
+}
+function copyText(t,okMsg){
+  const fb=()=>{const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();
+    let ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();toast(ok?okMsg:'복사가 안 돼요. 주소를 길게 눌러 복사해 주세요')};
+  try{navigator.clipboard.writeText(t).then(()=>toast(okMsg),fb)}catch(e){fb()}
+}
 async function prepareVoice(){
-  unlockAudio();
+  unlockAudio();micErr=null;
+  const block=micBlockReason();
+  if(block){micErr=block;voicePrepared=false;renderClient();return}
   try{await getMic();voicePrepared=true;toast('준비 완료! 마이크를 잡으면 내 목소리가 방송돼요')}
-  catch(e){voicePrepared=true;toast('마이크를 허용하지 않아서 듣기만 할 수 있어요')}
+  catch(e){
+    const n=e&&e.name;
+    micErr={msg:n==='NotAllowedError'||n==='SecurityError'
+        ?'마이크가 차단되어 있어요. 주소창 왼쪽 자물쇠(또는 ⓘ) → 권한 → 마이크를 "허용"으로 바꾼 뒤 다시 눌러 주세요.'+(IS_IOS?' (아이폰: 설정 → 사파리 → 마이크 → 허용)':'')
+      :n==='NotFoundError'?'이 기기에서 마이크를 찾지 못했어요.'
+      :n==='NotSupportedError'?'이 브라우저에서는 마이크를 켤 수 없어요. '+(IS_IOS?'사파리로':'크롬으로')+' 열어 주세요.'
+      :n==='NotReadableError'?'다른 앱(통화·녹음·카메라)이 마이크를 쓰고 있어요. 그 앱을 끄고 다시 눌러 주세요.'
+      :'마이크를 켜지 못했어요 ('+(n||'알 수 없는 오류')+').',open:n==='NotSupportedError'};
+    voicePrepared=false;
+  }
   renderClient();
 }
 function rtcBase(){return db.ref(`${ROOM_ROOT}/${MODE==='host'?ROOM:CROOM}/rtc/${rtc.sid}`)}
@@ -932,7 +1032,9 @@ function rtcSync(st,myId){
 }
 async function rtcBroadcast(st,myId){
   const sid=rtc.sid;let stream;
-  try{stream=await getMic()}catch(e){toast('마이크 권한을 허용해야 내 노래가 방송돼요');return}
+  const block=micBlockReason();
+  if(block){micErr=block;setVoiceInd('마이크를 쓸 수 없어서 방송이 안 돼요');renderClient();return}
+  try{stream=await getMic()}catch(e){setVoiceInd('마이크가 꺼져 있어서 방송이 안 돼요');if(!micErr)prepareVoice();return}
   if(rtc.sid!==sid)return;
   stream.getTracks().forEach(t=>t.enabled=true);
   const base=rtcBase();
